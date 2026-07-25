@@ -1,22 +1,55 @@
 # Connected-mode setup
 
-Demo mode uses no account. Cloudflare Workers AI and Supabase are optional enhancements to the same journey.
+The default local mode needs no hosted account. Connected mode enables MongoDB persistence, Elasticsearch indexing, and optional Vercel AI Gateway wording behind the FastAPI service.
 
-## Supabase
+## MongoDB
 
-1. Create one Supabase project and apply `supabase/migrations/202607240001_initial_pilot.sql` in the SQL editor.
-2. In Authentication, keep email magic links enabled. Add `http://localhost:3000/auth/callback`, the local port you actually use, and the production `/auth/callback` URL to the redirect allowlist.
-3. Copy the project URL and publishable key (legacy projects may call it the anon key) into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. For Worker event intake, set `SUPABASE_URL` as a Worker variable and run `npm exec wrangler -- secret put SUPABASE_PUBLISHABLE_KEY`. Never use or expose `service_role`.
-5. Set `DEMO_MODE=false` in `.dev.vars` locally and in the production Worker environment.
-6. Run the documented queries in `supabase/verify_rls.sql` with two disposable test users. User B must see and modify zero rows owned by User A.
+1. Create a MongoDB Atlas free deployment or another compatible cluster.
+2. Create a least-privilege database user and restrict network access to the required development or Fly.io sources.
+3. Put `MONGODB_URI` and `MONGODB_DATABASE` in the root `.env` locally.
+4. FastAPI creates unique owner/trip and updated-date indexes at startup. Product events have a 90-day TTL index.
+5. Verify with two random `x-session-id` values that one identifier cannot list, read, update, or delete the other's plan.
 
-## Workers AI
+The device UUID is pseudonymous access scoping, not authentication. Introduce a verified identity token before the pilot needs cross-device accounts or handles sensitive information.
 
-1. Authenticate Wrangler with the pilot Cloudflare account.
-2. Keep the `AI` binding in `wrangler.jsonc` and confirm the configured model is available in that account/region.
-3. Set `AI_ENABLED=true` in `.dev.vars` and set `CLOUDFLARE_DEV_BINDINGS=true` in `.env.local`, then set the production Worker variable separately. Authenticate Wrangler before `npm run dev` so the OpenNext development bridge can use the remote `AI` binding. Leave both settings disabled for an account-free local demo.
-4. Keep the timeout, per-session and daily limits conservative. Quota, timeout, malformed JSON, unsupported IDs and binding failures all return the deterministic plan.
-5. Do not enable paid overages until the product owner has configured billing alerts and approved a ceiling.
+## Elasticsearch
 
-For a connected local run, the browser values belong in `.env.local`; Worker-only values belong in `.dev.vars`. Both files are ignored by Git.
+1. Use Elastic's free self-managed Basic tier, or provision a metered Elastic Cloud deployment.
+2. Configure `ELASTICSEARCH_URL` plus either `ELASTICSEARCH_API_KEY` or `ELASTICSEARCH_USERNAME` and `ELASTICSEARCH_PASSWORD`.
+3. Generate a high-entropy `SEARCH_ADMIN_KEY`. Keep `ELASTICSEARCH_AUTO_INDEX=false` unless indexing at every API start is intentional.
+4. Start the API, then initialise or refresh the index:
+
+```bash
+curl -X POST http://127.0.0.1:4000/api/search/reindex \
+  -H "x-admin-key: $SEARCH_ADMIN_KEY"
+```
+
+Search automatically uses the checked-in catalogue when Elasticsearch is not configured.
+
+## Vercel AI Gateway
+
+1. Create a scoped AI Gateway API key and set `AI_GATEWAY_API_KEY` only on FastAPI.
+2. Set `AI_ENABLED=true` and confirm `AI_MODEL` is available.
+3. Keep time, per-device, and daily limits conservative. Invalid JSON, unknown IDs, timeouts, and quota failures return the deterministic plan.
+4. Configure billing alerts before enabling paid usage.
+
+## Fly.io API
+
+Review the application name and region in `apps/api/fly.toml`, then set secrets and deploy:
+
+```bash
+fly secrets set \
+  MONGODB_URI="..." \
+  ELASTICSEARCH_URL="..." \
+  ELASTICSEARCH_API_KEY="..." \
+  SEARCH_ADMIN_KEY="..." \
+  AI_GATEWAY_API_KEY="..." \
+  CORS_ORIGINS="https://your-web-app.example"
+npm run deploy:api
+```
+
+Do not put database, Elastic, search-admin, or AI keys in `apps/web/.env.local` or any `NEXT_PUBLIC_*` variable.
+
+## Next.js web
+
+Deploy `apps/web` and set `NEXT_PUBLIC_API_URL` to the public HTTPS Fly.io origin. The web content-security policy and FastAPI CORS allowlist both derive from these configured origins, so update them together.

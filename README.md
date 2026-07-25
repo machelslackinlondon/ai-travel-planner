@@ -1,94 +1,68 @@
-# Visit Jamaica AI Trip Planner MVP
+# Visit Jamaica AI Trip Planner
 
-A production-shaped, mobile-first pilot that turns a short trip brief into a trustworthy, editable Jamaica outline. The complete journey works without cloud accounts. Every bundled place, price, link and image is visibly labelled sample content and does not represent a real provider.
+An Nx monorepo containing a Next.js/React web application and a FastAPI service. The API provides deterministic or AI-assisted trip planning, MongoDB CRUD, privacy-filtered event intake, and Elasticsearch-backed catalogue search.
 
-The pilot covers Montego Bay and Negril, uses deterministic recommendations as its source of truth, optionally lets Cloudflare Workers AI organise the shortlist, and optionally uses Supabase magic links and Row Level Security for saving.
+## Workspace
 
-## 15-minute local setup
+```text
+apps/web/       Next.js 16 and React 19 frontend
+apps/api/       Python 3.11+ FastAPI service and Fly.io configuration
+apps/web-e2e/   Playwright browser tests
+libs/catalog/   Versioned content shared by TypeScript and Python
+```
 
-Prerequisites: Node.js 20.19 or newer (Node 22 LTS recommended) and npm 11 or newer.
+Nx owns the task graph and caching. MongoDB and Elasticsearch are adapters behind FastAPI; when their URLs are absent, local development uses in-memory trip storage and direct catalogue search.
+
+## Local setup
+
+Prerequisites: Node.js 20.19+, npm 11+, Python 3.11+, and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-nvm install
-nvm use
-cp .env.example .env.local
 npm install
+uv sync --project apps/api --dev
+cp .env.example .env
+cp apps/web/.env.example apps/web/.env.local
 npm run seed
 npm run dev
 ```
 
-Open `http://localhost:3000`. No Cloudflare or Supabase account is required: the defaults are `DEMO_MODE=true` and `AI_ENABLED=false`. Build a plan, edit it, and save a demo copy to this browser.
+Open `http://localhost:3000`. FastAPI runs at `http://127.0.0.1:4000`; its development OpenAPI page is `/docs`. No hosted account is needed for the default demo configuration.
 
-If your shell selects an older Node installation, switch Node before running npm. The repository’s `engines` field enforces the minimum.
-
-## Useful commands
+## Commands
 
 ```bash
-npm run dev          # Next.js development server
-npm run seed         # validate all public content and image paths
-npm run lint         # ESLint and content validation
-npm run typecheck    # strict TypeScript check
-npm test             # focused Vitest unit tests
-npm run build        # Next.js production build
-npm run preview      # build and preview the OpenNext Worker locally
-npm run upload       # upload a previewable Cloudflare Worker version
-npm run test:e2e     # Playwright mobile happy path
-npm run deploy       # manual Cloudflare deployment
+npm run dev            # run web and API together through Nx
+npm run dev:web        # run only Next.js
+npm run dev:api        # run only FastAPI
+npm run lint           # ESLint, Ruff, and catalogue checks
+npm run typecheck      # TypeScript and mypy
+npm test               # Vitest and pytest
+npm run build          # Next production build and Python bytecode validation
+npm run test:e2e       # Playwright happy path
+npm run graph          # inspect the Nx project graph
+npx nx run api:docker-build
 ```
 
-Install the Playwright browser once with `npm exec playwright -- install chromium`. Production deployment is deliberately manual; review a preview and the release checklist in `docs/MAINTENANCE_AND_RELEASES.md` first.
+## API surface
 
-## Demo mode and connected mode
+- `POST /api/plan` — validate a brief and return an AI-organised or deterministic plan.
+- `GET|POST /api/trips` and `GET|PUT|DELETE /api/trips/{id}` — MongoDB CRUD scoped by `x-session-id`.
+- `GET /api/search` — Elasticsearch search with a catalogue fallback.
+- `POST /api/search/reindex` — protected catalogue indexing.
+- `POST /api/events` — allowlisted product events only.
+- `GET /health/live` and `GET /health/ready` — Fly.io health endpoints.
 
-Demo mode is honest and fully useful: it uses the checked-in 18-record sample catalogue, deterministic wording, in-memory development events, session-storage drafts and browser-local saved copies. It sends no email and makes no live-provider claims.
+The browser stores a random device UUID and sends it as `x-session-id`. That is useful for an account-free pilot, but it is not production-grade identity or multi-device access. Add real authentication before storing sensitive or long-lived customer data.
 
-Local development reads the safe demo defaults from `wrangler.jsonc` through the OpenNext development bridge and therefore needs no Cloudflare or Supabase account while AI is disabled. Connected AI development is an intentional opt-in described below.
+## Connected services
 
-Connected mode adds only two hosted providers:
+- MongoDB Atlas supports a managed free deployment for pilot CRUD.
+- Elastic provides a free self-managed Basic tier; hosted Elastic Cloud is metered and may only offer a trial. The adapter supports API-key or basic authentication.
+- Vercel AI Gateway is optional. Failures, invalid output, quotas, and timeouts always return the deterministic plan.
+- Fly.io deploys `apps/api/Dockerfile`; Vercel can deploy `apps/web` with `NEXT_PUBLIC_API_URL` set to the Fly origin.
 
-- Cloudflare Workers AI through the `AI` binding. The deterministic shortlist remains authoritative. Disabled AI, missing bindings, quota, timeouts, malformed output and unknown IDs all fall back safely.
-- Supabase passwordless email and saved trips. The browser receives only a publishable key; Row Level Security limits each user to their own trips.
+See [connected-mode setup](docs/CONNECTED_MODE.md), [stack and cost controls](docs/STACK_AND_COSTS.md), and [maintenance and releases](docs/MAINTENANCE_AND_RELEASES.md).
 
-Follow [connected-mode setup](docs/CONNECTED_MODE.md) for exact variables, redirect URLs, migration and RLS verification. Copy configuration names from `.env.example`; keep real values in ignored `.env.local` and `.dev.vars` files.
+## Content trust
 
-## Content and trust
-
-`content/seed/items.json` has six sample stays, eight sample experiences and four sample destination/information records. Runtime suggestions can reference only their IDs. Prices, source URLs, checked dates and hand-off details always come from those records rather than model output.
-
-Follow [approved content operations](docs/CONTENT_OPERATIONS.md) to replace samples. Official Jamaica Tourist Board photography, logo files, brand tokens, approved provider records, production legal copy and public support/security contacts are still required before launch.
-
-## Architecture
-
-- Next.js 16, React 19 and TypeScript provide the App Router interface and route handlers.
-- OpenNext adapts the Next.js output into one Cloudflare Worker with static assets.
-- Zod validates trip briefs, public content, AI JSON, stored plans and events.
-- Next.js API route handlers reuse the Worker request logic, which caps payload size, AI calls, retries, output and event intake.
-- One Supabase migration creates `trips` and `product_events`, including foreign keys and Row Level Security.
-- Vitest covers recommendation and safety boundaries; Playwright covers the 360-pixel first-use journey.
-
-## Preview and release
-
-1. Run every command in the check set above.
-2. Test once with AI disabled and once enabled, if connected.
-3. Test signed-out demo saving, magic-link saving, account deletion and an allowlisted provider hand-off.
-4. Run `npm run upload` for a preview version or use the Cloudflare dashboard’s preview workflow.
-5. Check keyboard order, visible focus, reduced motion and the 360-pixel layout.
-6. Deploy manually with `npm run deploy` only after review. Keep the previous successful Worker version available for rollback.
-
-No payment is accepted and no reservation is described as complete. Provider availability, final price, payment and cancellation terms apply after the disclosed hand-off.
-
-## Free-tier risks
-
-Cloudflare and Supabase allowances can change. AI quota exhaustion returns the deterministic plan, but Worker request limits can still make the whole site unavailable. Supabase free projects may pause, magic-link email delivery is rate-limited, and database/egress limits can interrupt connected saving. Review official limits and usage weekly, add billing alerts before any paid plan, and do not allow unapproved automatic overages.
-
-## First pilot
-
-Observe five target visitors and ask:
-
-1. What did you expect after selecting “Plan my trip”?
-2. Which question, if any, was difficult to answer?
-3. What part of the plan felt useful or untrustworthy?
-4. What information did you need before continuing to a provider?
-5. Would you return to this planner for a real Jamaica trip? Why or why not?
-
-The smallest next validation step is to observe five target visitors attempting the core journey, then remove friction before adding functionality.
+`libs/catalog/seed/items.json` contains visibly labelled sample records. Runtime suggestions may reference only their IDs. Prices, URLs, checked dates, and provider details come from the catalogue rather than model output. Follow [approved content operations](docs/CONTENT_OPERATIONS.md) before replacing samples.

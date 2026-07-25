@@ -1,0 +1,1 @@
+"""Visit Jamaica FastAPI service."""

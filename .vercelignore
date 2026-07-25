@@ -1,0 +1,12 @@
+.agents
+.codex
+apps/api
+docs
+libs/catalog/project.json
+output
+playwright-report
+test-results
+apps/web-e2e
+tmp
+BOOTSTRAP_PROMPT.md
+SECURITY.md

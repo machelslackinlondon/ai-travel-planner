@@ -123,38 +123,34 @@ Show JMD and USD subtotals separately. Do not imply that one has been converted 
 
 **Secondary action:** Keep editing without saving
 
-Only now request an email address.
+Only now offer device-scoped saving.
 
-## Save with email
+## Save to this device
 
-**Heading:** Save your plan
+**Heading:** Save your plan to this device
 
-**Body:** Enter your email and we will send a secure, one-time sign-in link. No password is needed.
+**Body:** Connected mode stores the plan in MongoDB under a random identifier kept by this browser. No account is required.
 
-**Email field label:** Email address
+**Primary action:** Save this trip
 
-**Primary action:** Email my secure link
+**Success heading:** Your trip is saved
 
-**Success heading:** Check your email
+**Success body:** This plan is available from My trip on this browser. Clearing browser storage or changing device removes access.
 
-**Success body:** Open the link on this device to save your plan. The link expires, so use the newest email if you requested more than one.
+Provide **View saved trips** and **Keep editing** actions. If the API is unavailable, save a labelled local browser copy and say so clearly.
 
-Provide **Use a different email** and **Continue without saving** actions. Do not claim an email has arrived when the provider returned an error.
-
-## Returning user
-
-After magic-link sign-in:
+## Returning visitor
 
 **Heading:** Welcome back
 
-If an unsaved draft exists, ask: “Save the trip on this device to your account?”
+Load plans that match the random device identifier retained in local storage. Never merge or overwrite a saved plan silently.
 
 Actions:
 
 - Save this trip
 - Not now
 
-Never merge or overwrite a saved plan silently.
+Explain that device scoping is not an account and does not provide cross-device access.
 
 ## Empty and error states
 

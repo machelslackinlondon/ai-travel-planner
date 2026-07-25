@@ -2,7 +2,7 @@ import { access, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const root = process.cwd()
-const file = path.join(root, 'content/seed/items.json')
+const file = path.join(root, 'libs/catalog/seed/items.json')
 const items = JSON.parse(await readFile(file, 'utf8'))
 const errors = []
 const ids = new Set()
@@ -24,7 +24,7 @@ for (const [index, item] of items.entries()) {
   if (!item.imageAlt?.trim()) errors.push(`${label}: missing image alt text`)
   if (!item.imagePath?.startsWith('/images/') || /^https?:/.test(item.imagePath)) errors.push(`${label}: image must be a local /images path`)
   else {
-    try { await access(path.join(root, 'public', item.imagePath)) } catch { errors.push(`${label}: local image does not exist (${item.imagePath})`) }
+    try { await access(path.join(root, 'apps/web/public', item.imagePath)) } catch { errors.push(`${label}: local image does not exist (${item.imagePath})`) }
   }
   if (item.published !== true) errors.push(`${label}: public seed includes an unpublished record`)
   if (item.priceAmount !== undefined && (!item.currency || item.priceAmount < 0)) errors.push(`${label}: priced record requires non-negative amount and currency`)

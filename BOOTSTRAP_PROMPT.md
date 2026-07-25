@@ -29,7 +29,7 @@ If a visitor can turn a short description of their Jamaica trip into a trustwort
 2. They enter dates or trip length, travellers, on-island budget, preferred pace, resort-area preferences and interests.
 3. They receive a useful first plan made from approved Jamaica content.
 4. They can replace, remove, save or reorder suggestions and see cost assumptions.
-5. Only after the plan has shown value, they may use an email magic link to save it.
+5. Only after the plan has shown value, they may save it to this device.
 6. They can continue to a clearly named, approved external provider for accommodation or an experience.
 
 ### Non-negotiable boundaries
@@ -48,35 +48,29 @@ If a visitor can turn a short description of their Jamaica trip into a trustwort
 
 Use the latest stable, mutually compatible versions and commit a lockfile:
 
-- Next.js App Router, React and TypeScript.
-- The OpenNext Cloudflare adapter and a Cloudflare Worker with static assets.
-- Cloudflare Workers AI through a binding named `AI`.
-- Supabase JavaScript client for passwordless authentication and saved trips.
+- Nx to orchestrate a monorepo containing Next.js and FastAPI.
+- Next.js App Router, React and TypeScript, deployable to Vercel.
+- Python 3.11+, FastAPI and Pydantic, containerised for Fly.io.
+- MongoDB through async PyMongo for trip CRUD and privacy-filtered events.
+- Elasticsearch through its official async Python client for catalogue search.
+- Vercel AI Gateway through its OpenAI-compatible HTTPS endpoint.
 - CSS variables plus small, component-level styles. Tailwind may be used only if it materially reduces code; do not add a large component framework.
 - Zod or an equally small runtime schema validator for all AI responses and form payloads.
 - Vitest for focused unit tests and Playwright for one end-to-end happy path.
-- npm and simple scripts: `dev`, `build`, `typecheck`, `test`, `test:e2e`, `lint`, `deploy` and `seed`.
+- npm, uv and Nx targets for `dev`, `build`, `typecheck`, `test`, `test:e2e`, `lint`, `deploy` and `seed`.
 
-Keep the repository straightforward. Prefer clear feature folders over architectural layers. Do not create a monorepo, microservices, queues, a vector database or a custom design-system package.
+Keep the repository straightforward. Use only the web app, API app, browser-test project and shared catalogue; do not add queues, a vector database or a custom design-system package.
 
 ### Suggested structure
 
 Use the standard Next.js App Router structure where needed, but keep the intent below:
 
 ```text
-content/seed/             approved demo content in JSON
+apps/web/                 Next.js UI, browser helpers and Vitest tests
+apps/api/                 FastAPI, MongoDB, Elasticsearch and pytest tests
+apps/web-e2e/             Playwright happy path
+libs/catalog/             approved demo content in JSON
 docs/                     product, onboarding and operating documents
-public/images/            local placeholders or approved images
-src/components/           shared interface components
-src/app/                  App Router pages, layouts and API route handlers
-src/features/onboarding/  trip brief steps
-src/features/planner/     recommendations and trip editing
-src/features/auth/        magic-link save flow
-src/lib/                  schemas, content filter, Supabase client and helpers
-src/styles/               tokens and global styles
-src/worker/               API routes, AI adapter and event intake
-supabase/migrations/      minimal schema and Row Level Security
-tests/                    focused unit and end-to-end tests
 ```
 
 ### Pages
@@ -86,8 +80,7 @@ Build only these routes:
 - `/` — Visit Jamaica-style introduction with destination categories and **Plan my trip**.
 - `/plan` — the guided trip brief, one decision group at a time.
 - `/trip/:id` — the generated plan, editing tools, cost notes and external hand-offs.
-- `/saved` — the signed-in visitor's saved trips and an honest empty state.
-- `/auth/callback` — magic-link completion.
+- `/saved` — this device's saved trips and an honest empty state.
 - `/help` — how suggestions, prices, saving and external hand-offs work.
 - Standard privacy, accessibility and not-found pages with concise pilot copy.
 
@@ -130,7 +123,7 @@ Demo records must be visibly marked as sample content and must not impersonate r
 Use a simple two-stage approach:
 
 1. Deterministically filter and score approved content using destination, group, interests, pace and budget.
-2. Give only that small shortlist and the structured trip brief to Workers AI so it can organise the choices and write short reasons.
+2. Give only that small shortlist and the structured trip brief to Vercel AI Gateway so it can organise the choices and write short reasons.
 
 The model must return JSON only. Validate it before use. Each recommendation must reference an existing content ID. Reject unknown IDs and unsupported values. Do not allow model output to supply prices, URLs or provider policies; those fields always come from the approved content record.
 
@@ -156,14 +149,9 @@ Explain that transport to Jamaica is not part of the planner. Do not collect pas
 
 ### Saved data
 
-Generate one Supabase migration with the minimum tables:
+Use a MongoDB repository with `trips` and `product_events` collections. Scope trip reads, creates, updates and deletes to a random browser UUID sent as `x-session-id`; create unique compound indexes and a product-event TTL index. Product events must never include names, email addresses, raw prompts, accessibility details or free text.
 
-- `trips`: ID, owner ID, name, structured brief, validated itinerary, created and updated timestamps.
-- `product_events`: pseudonymous session ID, allowed event name, small allowlisted properties and timestamp.
-
-Use UUIDs, foreign keys and Row Level Security. A signed-in user may read, create, update and delete only their own trips. Product events must never include names, email addresses, raw prompts, accessibility details or free text. Do not expose or require a Supabase service-role key in the app.
-
-Before sign-in, keep the draft in session storage. After successful magic-link sign-in, ask before associating the draft with the new account. Offer a working **Delete trip** control.
+Keep the current draft in session storage and the device UUID in local storage. Be explicit that this is not authentication or cross-device access. Offer a working **Delete trip** control and require real identity before storing sensitive or long-lived customer data.
 
 ### External hand-offs
 
@@ -195,7 +183,7 @@ Implement the exact first-use sequence and baseline copy in `docs/USER_ONBOARDIN
 - show progress and allow Back without losing answers;
 - make optional questions visibly optional;
 - explain the on-island budget;
-- show a plan before requesting email;
+- show a plan before offering device-scoped saving;
 - include useful empty, loading, error and AI-fallback states;
 - avoid a product tour or modal carousel.
 
@@ -217,7 +205,7 @@ Properties must be coarse and allowlisted, for example resort area, trip-length 
 - Cache identical demo-content queries where safe.
 - Cap AI input, output, retries and daily calls through configuration.
 - Make `DEMO_MODE=true` and `AI_ENABLED=false` a fully usable local configuration.
-- Add security headers, same-origin API calls, payload-size limits and an external-domain allowlist.
+- Add security headers, a strict CORS allowlist, payload-size limits and an external-domain allowlist.
 - Keep secrets out of browser code, logs, fixtures and version control.
 - Add dependency-update instructions, but no automated production deployment.
 
@@ -235,8 +223,8 @@ Run type checking, unit tests, a production build and the happy-path end-to-end 
 
 #### Phase 2 — Saving and trust
 
-- Add the Supabase migration and Row Level Security tests or documented verification queries.
-- Add magic-link sign-in, saved trips and deletion.
+- Add MongoDB CRUD, unique indexes and cross-device-ID isolation tests.
+- Add device-scoped saved trips and deletion.
 - Add pricing states, source links, external hand-off disclosure and the help pages.
 - Add the five privacy-safe events.
 
@@ -244,7 +232,7 @@ Re-run all checks and manually test a signed-out and signed-in journey.
 
 #### Phase 3 — AI enhancement
 
-- Add the Workers AI adapter and JSON validation.
+- Add the Vercel AI Gateway adapter and JSON validation.
 - Keep deterministic selection as the source of allowed items and prices.
 - Exercise timeout, malformed-response, quota and disabled-AI fallbacks.
 
@@ -253,7 +241,7 @@ Re-run all checks and compare AI and fallback output for the same trip brief.
 #### Phase 4 — Hand-off quality
 
 - Finish responsive and accessibility details.
-- Add `wrangler.jsonc`, environment documentation and preview deployment steps.
+- Add Fly.io API and Vercel web environment documentation and preview deployment steps.
 - Update `README.md` with a 15-minute local setup, service connection, content replacement, test and deployment guide.
 - Add `SECURITY.md` with data handling, secret rotation and vulnerability reporting.
 - Confirm there are no flight features or misleading booking claims anywhere in the repository.
@@ -266,8 +254,8 @@ The MVP is complete only when all of the following are true:
 2. A mobile visitor can finish the brief and receive a plan in under three minutes.
 3. The result contains only IDs from approved content and clearly labels price confidence.
 4. Disabling or breaking AI still produces a useful plan.
-5. Registration is requested only when the visitor chooses to save.
-6. Row Level Security prevents one user from reading or editing another user's trips.
+5. No registration is required to build or save a pilot plan.
+6. One device UUID cannot read or edit another device UUID's trips.
 7. External links are allowlisted, labelled and opened safely.
 8. No raw prompt, email, accessibility note or personal data appears in product events or logs.
 9. Keyboard navigation, focus order, error handling and a 360-pixel layout have been checked.

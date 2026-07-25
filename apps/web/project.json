@@ -1,0 +1,68 @@
+{
+  "name": "web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/web/src",
+  "tags": ["type:app", "platform:web"],
+  "implicitDependencies": ["catalog"],
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "next dev --hostname 127.0.0.1 --port 3000",
+        "cwd": "apps/web"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/.next"],
+      "options": {
+        "command": "next build",
+        "cwd": "apps/web"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "next start",
+        "cwd": "apps/web"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint . --max-warnings=0",
+        "cwd": "apps/web"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.json",
+        "cwd": "apps/web"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.config.ts",
+        "cwd": "apps/web"
+      }
+    },
+    "seed": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/validate-content.mjs"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx --yes vercel@57.0.0 deploy --prod",
+        "cwd": "apps/web"
+      }
+    }
+  }
+}

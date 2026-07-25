@@ -5,10 +5,10 @@ The public seed is intentionally small and versioned. It is not a content manage
 ## Replace the samples
 
 1. Ask the Jamaica Tourist Board content owner to approve each title, summary, source, image, price status and checked date.
-2. Replace records in `content/seed/items.json` without changing the `ContentItem` shape in `src/lib/schemas.ts`.
-3. Put approved image files under `public/images/`. Do not hotlink, scrape or include an official logo unless the exact asset has been supplied and approved.
+2. Replace records in `libs/catalog/seed/items.json` without changing the matching shapes in `apps/web/src/lib/schemas.ts` and `apps/api/app/models.py`.
+3. Put approved image files under `apps/web/public/images/`. Do not hotlink, scrape or include an official logo unless the exact asset has been supplied and approved.
 4. Set `priceStatus` to `confirmed` only when the supplied source supports that wording. Otherwise use `estimated` or `check-with-provider`. Never infer a price.
-5. Add the provider’s hostname to the small allowlist in `src/lib/provider.ts` only after approval. Worker and browser hand-offs accept HTTPS only.
+5. Add the provider’s hostname to the small allowlist in `apps/web/src/lib/provider.ts` only after approval. Browser hand-offs accept HTTPS only.
 6. Run `npm run seed`, then the full check set documented in the README.
 7. Have the content owner review the rendered cards, source links, alt text and checked date before release.
 

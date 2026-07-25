@@ -13,8 +13,8 @@ A developer supports releases and incidents, but no standing engineering team sh
 
 1. Open the production journey on a phone.
 2. Complete one trip using AI and one with AI disabled.
-3. Check magic-link saving, trip deletion and one provider hand-off.
-4. Review Cloudflare and Supabase usage against the free allowances.
+3. Check MongoDB saving, trip deletion, Elasticsearch search and one provider hand-off.
+4. Review Vercel, Fly.io, AI Gateway, MongoDB and Elastic usage against the approved allowances.
 5. Review only the five product events for obvious drop-off or errors.
 6. Record the result and any action in one shared issue.
 
@@ -36,7 +36,7 @@ The application must make stale information visible through the checked date and
 1. Review dependency update notices and security advisories.
 2. Apply small, compatible updates in a branch.
 3. Run lint, type checking, tests, the production build and the happy-path end-to-end test.
-4. Run `npm run preview`, then check the 360-pixel layout and keyboard journey.
+4. Build a Fly API image and a Vercel web preview, then check the 360-pixel layout and keyboard journey.
 5. Merge and deploy manually after review.
 
 Avoid automatic production deployment and large upgrade batches during the pilot.
@@ -47,7 +47,7 @@ Avoid automatic production deployment and large upgrade batches during the pilot
 - Sample or unapproved content is not presented as real.
 - Price status, checked date and source remain visible.
 - AI failure still falls back to a useful plan.
-- Sign-in, saving and deletion work.
+- Device-scoped saving and deletion work, with the identity limitation clearly disclosed.
 - External domains are allowlisted.
 - Privacy-safe event properties have not changed unexpectedly.
 - Accessibility checks and automated tests pass.
@@ -56,7 +56,7 @@ Avoid automatic production deployment and large upgrade batches during the pilot
 
 ## Simple rollback
 
-Keep the previous successful Cloudflare deployment available. If a release breaks the planner, restore that deployment, set `AI_ENABLED=false` if the model path is involved, and record one incident issue. Do not attempt live data repair until the affected trip IDs and scope are understood.
+Keep the previous successful Vercel deployment and Fly.io release available. Roll back the affected service, set `AI_ENABLED=false` if the model path is involved, and record one incident issue. Do not attempt live data repair until the affected trip IDs and scope are understood.
 
 ## Incident priorities
 
@@ -81,9 +81,9 @@ The deterministic planner should allow the public journey to continue safely.
 
 - Keep anonymous draft data in session storage and clear it when the browser session ends or the visitor deletes it.
 - Keep raw AI input only in memory for the request; do not add it to logs.
-- Give signed-in users a working delete control.
+- Give each device-scoped visitor a working delete control.
 - Define and publish a saved-trip retention period before the pilot accepts real users.
-- Delete test users and test trips after each formal test cycle.
+- Delete test trips after each formal test cycle.
 - Rotate any compromised secret immediately and review access logs.
 
 ## Scope review after the first five users
