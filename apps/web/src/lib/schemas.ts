@@ -11,8 +11,8 @@ export const accessibilitySchema = z.enum(['step-free', 'mobility-support', 'vis
 export const tripBriefSchema = z.object({
   timingMode: z.enum(['nights', 'dates']),
   nights: z.number().int().min(1).max(21),
-  startDate: z.string().max(10).optional(),
-  endDate: z.string().max(10).optional(),
+  startDate: z.string().max(10).nullish(),
+  endDate: z.string().max(10).nullish(),
   adults: z.number().int().min(1).max(12),
   children: z.number().int().min(0).max(12),
   resortArea: resortChoiceSchema,
@@ -86,6 +86,76 @@ export const tripPlanSchema = aiNarrativeSchema.extend({
 
 export type TripPlan = z.infer<typeof tripPlanSchema>
 
+const evidenceValueSchema = z.object({
+  value: z.union([z.string(), z.boolean(), z.number(), z.array(z.string()), z.null()]),
+  confidence: z.number().min(0).max(1),
+  source: z.enum(['user', 'brief', 'itinerary', 'default']),
+})
+
+const travellerProfileSchema = z.object({
+  budget: evidenceValueSchema,
+  interests: evidenceValueSchema,
+  accessibilityNeeds: evidenceValueSchema,
+  groupNeeds: evidenceValueSchema,
+  pace: evidenceValueSchema,
+  destination: evidenceValueSchema,
+  dates: evidenceValueSchema,
+  fixedItemIds: z.array(z.string()),
+  flexibleItemIds: z.array(z.string()),
+  searchIntent: evidenceValueSchema,
+  followUpQuestion: z.string().nullable().optional(),
+})
+
+const validationIssueSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  severity: z.enum(['error', 'warning']),
+  day: z.number().int().optional().nullable(),
+  contentId: z.string().optional().nullable(),
+})
+
+export const customisationResultSchema = z.object({
+  draftId: z.string(),
+  traceId: z.string(),
+  status: z.enum(['valid', 'invalid', 'needs-input', 'no-results']),
+  resultMode: z.enum(['demo', 'live', 'hybrid-live', 'hybrid-fallback', 'live-fallback']),
+  originalItinerary: tripPlanSchema,
+  proposedItinerary: tripPlanSchema.optional().nullable(),
+  profile: travellerProfileSchema,
+  changes: z.array(z.object({
+    type: z.enum(['added', 'removed', 'moved']),
+    contentId: z.string(),
+    title: z.string(),
+    fromDay: z.number().int().optional().nullable(),
+    toDay: z.number().int().optional().nullable(),
+    reason: z.string(),
+  })),
+  critic: z.object({
+    valid: z.boolean(),
+    errors: z.array(validationIssueSchema),
+    warnings: z.array(validationIssueSchema),
+    suggestedRepairs: z.array(z.object({
+      code: z.string(),
+      message: z.string(),
+      contentId: z.string().optional().nullable(),
+      day: z.number().int().optional().nullable(),
+    })),
+  }).optional().nullable(),
+  repairCount: z.number().int().min(0).max(1),
+  followUpQuestion: z.string().optional().nullable(),
+  fallbackUsed: z.boolean(),
+})
+
+export type CustomisationResult = z.infer<typeof customisationResultSchema>
+
+export const customisationDraftSchema = z.object({
+  tripId: z.string(),
+  requestedChange: z.string().min(3).max(500),
+  result: customisationResultSchema,
+})
+
+export type CustomisationDraft = z.infer<typeof customisationDraftSchema>
+
 export const aiPlannerActivitySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -134,6 +204,12 @@ export const allowedEventNames = [
   'itinerary_generated',
   'itinerary_saved',
   'destination_favourited',
+  'trip_customisation_offered',
+  'trip_customisation_started',
+  'trip_customisation_generated',
+  'trip_customisation_applied',
+  'trip_customisation_abandoned',
+  'trip_customisation_fallback_used',
 ] as const
 
 export const productEventSchema = z.object({

@@ -83,6 +83,32 @@ def test_events_drop_unapproved_properties() -> None:
     assert saved["properties"] == {"resortArea": "negril", "interestCount": 2}
 
 
+def test_customisation_events_never_store_free_text() -> None:
+    app = create_app(Settings(ai_enabled=False, demo_mode=True))
+    event = {
+        "sessionId": SESSION_ID,
+        "eventName": "trip_customisation_generated",
+        "properties": {
+            "resultMode": "demo",
+            "changeCount": 2,
+            "validationOutcome": "valid",
+            "elapsedTimeBand": "under-2s",
+            "request": "private change request",
+            "profile": "private inferred profile",
+        },
+    }
+    with TestClient(app) as client:
+        assert client.post("/api/events", json=event).status_code == 202
+        saved = client.get("/api/dev/events").json()[0]
+
+    assert saved["properties"] == {
+        "resultMode": "demo",
+        "changeCount": 2,
+        "validationOutcome": "valid",
+        "elapsedTimeBand": "under-2s",
+    }
+
+
 def test_plan_payload_size_is_bounded() -> None:
     app = create_app(Settings(ai_enabled=False))
     with TestClient(app) as client:
@@ -111,3 +137,46 @@ def test_conversational_planner_uses_repository_grounded_fallback() -> None:
     assert payload["interpretedRequest"]["destination"] == "montego-bay"
     assert len(payload["days"]) == 3
     assert set(payload["sources"]) >= {activity["id"] for day in payload["days"] for activity in day["activities"]}
+
+
+def test_trip_customisation_keeps_original_until_valid_proposal_is_returned() -> None:
+    app = create_app(Settings(ai_enabled=False, agent_mode="demo"))
+    with TestClient(app) as client:
+        plan = client.post("/api/plan", headers=HEADERS, json=BRIEF).json()
+        response = client.post(
+            f"/api/trips/{plan['id']}/customise",
+            headers=HEADERS,
+            json={
+                "tripId": plan["id"],
+                "originalItinerary": plan,
+                "originalBrief": plan["brief"],
+                "requestedChange": "Make this trip more family friendly",
+            },
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "valid"
+    assert payload["resultMode"] == "demo"
+    assert payload["originalItinerary"] == plan
+    assert payload["proposedItinerary"] != plan
+    assert payload["changes"]
+    assert payload["repairCount"] <= 1
+
+
+def test_trip_customisation_rejects_mismatched_trip_id() -> None:
+    app = create_app(Settings(ai_enabled=False, agent_mode="demo"))
+    with TestClient(app) as client:
+        plan = client.post("/api/plan", headers=HEADERS, json=BRIEF).json()
+        response = client.post(
+            "/api/trips/not-this-trip/customise",
+            headers=HEADERS,
+            json={
+                "tripId": plan["id"],
+                "originalItinerary": plan,
+                "originalBrief": plan["brief"],
+                "requestedChange": "Make this trip more relaxed",
+            },
+        )
+
+    assert response.status_code == 400

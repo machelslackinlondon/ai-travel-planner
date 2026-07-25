@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
-import { ConversationalPlanner } from '../../features/ai-planner/ConversationalPlanner'
+import { TripCustomiser } from '../../features/ai-planner/TripCustomiser'
 
 export const metadata: Metadata = {
-  title: 'AI travel planner',
-  description: 'Describe a Jamaica trip and receive a repository-grounded sample itinerary.',
+  title: 'Customise your trip',
+  description: 'Revise an existing Jamaica itinerary using grounded sample content.',
 }
 
-export default function AiPlannerPage() {
-  return <ConversationalPlanner />
+export default async function AiPlannerPage({ searchParams }: { searchParams: Promise<{ tripId?: string }> }) {
+  const { tripId } = await searchParams
+  return <TripCustomiser tripId={tripId} />
 }

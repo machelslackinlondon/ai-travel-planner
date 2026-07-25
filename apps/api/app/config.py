@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -41,12 +42,19 @@ class Settings(BaseSettings):
         default="visit-jamaica-travel", validation_alias="ELASTICSEARCH_TRAVEL_INDEX"
     )
     elasticsearch_auto_index: bool = Field(default=False, validation_alias="ELASTICSEARCH_AUTO_INDEX")
+    elasticsearch_semantic_field: str | None = Field(
+        default=None,
+        validation_alias="ELASTICSEARCH_SEMANTIC_FIELD",
+    )
     search_admin_key: str | None = Field(default=None, validation_alias="SEARCH_ADMIN_KEY")
 
     ai_enabled: bool = Field(default=False, validation_alias="AI_ENABLED")
     ai_gateway_api_key: str | None = Field(default=None, validation_alias="AI_GATEWAY_API_KEY")
     ai_model: str = Field(default="openai/gpt-4o-mini", validation_alias="AI_MODEL")
     ai_timeout_ms: int = Field(default=4500, ge=250, le=30_000, validation_alias="AI_TIMEOUT_MS")
+    agent_mode: Literal["live", "demo", "hybrid"] = Field(default="demo", validation_alias="AGENT_MODE")
+    agent_timeout_ms: int = Field(default=12_000, ge=500, le=60_000, validation_alias="AGENT_TIMEOUT_MS")
+    agent_diagnostics: bool = Field(default=False, validation_alias="AGENT_DIAGNOSTICS")
     ai_max_daily_calls: int = Field(default=100, ge=0, validation_alias="AI_MAX_DAILY_CALLS")
     ai_max_session_calls_per_hour: int = Field(default=3, ge=0, validation_alias="AI_MAX_SESSION_CALLS_PER_HOUR")
     event_max_session_calls_per_hour: int = Field(default=30, ge=0, validation_alias="EVENT_MAX_SESSION_CALLS_PER_HOUR")

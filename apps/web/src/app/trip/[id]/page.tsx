@@ -1,6 +1,7 @@
 import { TripPage } from '../../../features/planner/TripPage'
 
-export default async function Trip({ params }: { params: Promise<{ id: string }> }) {
+export default async function Trip({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ customised?: string }> }) {
   const { id } = await params
-  return <TripPage id={id} />
+  const { customised } = await searchParams
+  return <TripPage id={id} customisationApplied={customised === 'applied'} />
 }

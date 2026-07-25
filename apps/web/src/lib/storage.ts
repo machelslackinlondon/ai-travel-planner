@@ -1,10 +1,11 @@
-import { aiPlannerResponseSchema, tripPlanSchema, type AiPlannerResponse, type TripPlan } from './schemas'
+import { aiPlannerResponseSchema, customisationDraftSchema, tripPlanSchema, type AiPlannerResponse, type CustomisationDraft, type TripPlan } from './schemas'
 
 const currentKey = 'vj-current-trip'
 const savedKey = 'vj-demo-saved-trips'
 const sessionKey = 'vj-session-id'
 const aiSavedKey = 'visit-jamaica-ai-itineraries'
 const favouriteDestinationsKey = 'vj-favourite-destinations'
+const customisationKeyPrefix = 'vj-trip-customisation:'
 
 export function saveDraft(plan: TripPlan) {
   sessionStorage.setItem(currentKey, JSON.stringify(plan))
@@ -23,6 +24,23 @@ export function getDraft(id?: string): TripPlan | null {
 
 export function clearDraft() {
   sessionStorage.removeItem(currentKey)
+}
+
+export function saveCustomisationDraft(draft: CustomisationDraft) {
+  sessionStorage.setItem(`${customisationKeyPrefix}${draft.tripId}`, JSON.stringify(draft))
+}
+
+export function getCustomisationDraft(tripId: string): CustomisationDraft | null {
+  try {
+    const raw = sessionStorage.getItem(`${customisationKeyPrefix}${tripId}`)
+    return raw ? customisationDraftSchema.parse(JSON.parse(raw)) : null
+  } catch {
+    return null
+  }
+}
+
+export function clearCustomisationDraft(tripId: string) {
+  sessionStorage.removeItem(`${customisationKeyPrefix}${tripId}`)
 }
 
 export function getDemoSavedTrips(): TripPlan[] {

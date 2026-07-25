@@ -56,7 +56,7 @@ export function SavedPage() {
       {!loading && aiTrips.length ? <><h2>Conversational itineraries</h2><div className="saved-list">
         {aiTrips.map((trip) => <article className="saved-row" key={trip.id}><div><div className="eyebrow">{trip.duration} · {trip.generationMode}</div><h3>{trip.tripName}</h3><p>{trip.summary}</p></div><button className="button button-danger" type="button" onClick={() => removeAi(trip.id)}>Delete itinerary</button></article>)}
       </div></> : null}
-      {!loading && !trips.length && !aiTrips.length ? <div><h2>Your next Jamaica idea starts here</h2><p>Build a plan, then save it here when it feels right.</p><div className="button-row"><Link className="button button-primary" href="/plan">Plan a trip</Link><Link className="button button-secondary" href="/ai-planner">Try the AI planner</Link></div></div> : null}
+      {!loading && !trips.length && !aiTrips.length ? <div><h2>Your next Jamaica idea starts here</h2><p>Build a plan, then save it here when it feels right.</p><div className="button-row"><Link className="button button-primary" href="/plan">Plan a trip</Link></div></div> : null}
     </div>
   )
 }

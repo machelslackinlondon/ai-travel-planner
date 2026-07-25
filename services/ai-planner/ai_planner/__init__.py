@@ -1,3 +1,10 @@
+from .customisation_models import (
+    AgentMode,
+    ApprovedContent,
+    CustomisationRequest,
+    CustomisationWorkflowResult,
+)
+from .customisation_orchestrator import CustomisationOrchestrator
 from .models import (
     PlannerRequest,
     PlannerResponse,
@@ -14,7 +21,12 @@ from .repositories import (
 )
 
 __all__ = [
+    "AgentMode",
     "AiPlannerService",
+    "ApprovedContent",
+    "CustomisationOrchestrator",
+    "CustomisationRequest",
+    "CustomisationWorkflowResult",
     "ElasticsearchTravelRepository",
     "MockTravelRepository",
     "PlannerRequest",

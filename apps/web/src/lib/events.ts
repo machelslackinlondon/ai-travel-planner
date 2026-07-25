@@ -17,6 +17,12 @@ const allowedProperties: Record<EventName, readonly string[]> = {
   itinerary_generated: ['generationMode', 'searchBackend', 'dayCount'],
   itinerary_saved: ['saveMode'],
   destination_favourited: ['destinationId', 'favourited'],
+  trip_customisation_offered: ['entryPoint'],
+  trip_customisation_started: ['mode'],
+  trip_customisation_generated: ['resultMode', 'changeCount', 'validationOutcome', 'elapsedTimeBand'],
+  trip_customisation_applied: ['changeCount'],
+  trip_customisation_abandoned: ['stage'],
+  trip_customisation_fallback_used: ['resultMode'],
 }
 
 export function tripLengthBand(nights: number) {

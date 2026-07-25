@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ContentCard } from '../../components/ContentCard'
 import { ProviderDialog } from '../../components/ProviderDialog'
 import { areaLabel } from '../../lib/content'
@@ -13,16 +13,24 @@ import { deleteRemoteTrip, getRemoteTrip, saveRemoteTrip } from '../../lib/remot
 import type { ContentItem, TripPlan } from '../../lib/schemas'
 import { clearDraft, deleteDemoTrip, getDemoSavedTrips, getDraft, saveDemoTrip, saveDraft } from '../../lib/storage'
 
-export function TripPage({ id }: { id: string }) {
+export function TripPage({ id, customisationApplied = false }: { id: string; customisationApplied?: boolean }) {
   const [plan, setPlan] = useState<TripPlan | null>(() => getDraft(id) ?? getDemoSavedTrips().find((trip) => trip.id === id) ?? null)
   const [handoffItem, setHandoffItem] = useState<ContentItem | null>(null)
   const [showSave, setShowSave] = useState(false)
   const [pinned, setPinned] = useState<string[]>([])
   const [deleteError, setDeleteError] = useState('')
   const [loadingRemote, setLoadingRemote] = useState(plan === null)
+  const [showCustomisationChoice, setShowCustomisationChoice] = useState(true)
+  const offered = useRef(false)
   const router = useRouter()
 
   useEffect(() => { if (plan) saveDraft(plan) }, [plan])
+  useEffect(() => {
+    if (plan && !offered.current) {
+      offered.current = true
+      void trackEvent('trip_customisation_offered', { entryPoint: 'first-itinerary' })
+    }
+  }, [plan])
   useEffect(() => {
     if (plan) return
     getRemoteTrip(id)
@@ -106,11 +114,13 @@ export function TripPage({ id }: { id: string }) {
             <button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button>
           </div>
           {plan.fallbackMessage && <div className="notice" role="status"><strong>Your plan is ready.</strong> {plan.fallbackMessage}</div>}
+          {customisationApplied && <div className="notice" role="status"><strong>Changes applied successfully.</strong> Your customised itinerary is now the current trip.</div>}
           <p className="trust-note">This editable outline uses sample content. Nothing has been reserved or charged.</p>
+          {showCustomisationChoice && <section className="customisation-choice" aria-labelledby="next-step-title"><div><div className="eyebrow">Choose your next step</div><h2 id="next-step-title">Keep this trip or tailor it with AI</h2><p>Your current plan will stay unchanged unless you review and apply a proposed customisation.</p></div><div className="button-row"><button className="button button-secondary" type="button" onClick={() => { setShowCustomisationChoice(false); document.getElementById('trip-outline')?.scrollIntoView() }}>Keep this trip</button><Link className="button button-primary" href={`/ai-planner?tripId=${encodeURIComponent(plan.id)}`}>Customise this trip</Link></div></section>}
         </div>
       </section>
 
-      <div className="page">
+      <div className="page" id="trip-outline">
         <div className="eyebrow">Day by day</div><h2>Your outline</h2>
         <ol className="day-list">
           {plan.days.map((day) => <li className="day-card" key={day.day}><div className="day-number">Day {day.day}</div><div><h3>{day.title}</h3>{day.itemIds.length ? day.itemIds.map((itemId) => <p key={itemId}>{contentById.get(itemId)?.title ?? 'Open time'}</p>) : <p>Open time to shape later.</p>}</div></li>)}

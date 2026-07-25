@@ -9,6 +9,7 @@ from .models import ContentItem, TripBrief
 class AiClient(Protocol):
     async def generate(self, brief: TripBrief, shortlist: list[ContentItem]) -> Any: ...
     async def generate_planner_narrative(self, request: str, context: list[dict[str, Any]], days: int) -> Any: ...
+    async def run_customisation_agent(self, agent_name: str, payload: dict[str, Any]) -> Any: ...
     async def close(self) -> None: ...
 
 
@@ -87,6 +88,40 @@ class VercelGatewayClient:
                 "response_format": {"type": "json_object"},
                 "temperature": 0.2,
                 "max_tokens": 500,
+                "stream": False,
+            },
+        )
+        response.raise_for_status()
+        return json.loads(response.json()["choices"][0]["message"]["content"])
+
+    async def run_customisation_agent(self, agent_name: str, payload: dict[str, Any]) -> Any:
+        instructions = {
+            "traveller-profiler": (
+                "Infer only preferences supported by the request and supplied brief. Return JSON with interests, "
+                "pace, fixedItemIds, searchIntent and confidence. Use only supplied item IDs."
+            ),
+            "itinerary-planner": (
+                "Select only supplied candidate IDs to improve the current itinerary. Return JSON with "
+                "preferredCandidateIds and explanationById. Do not add travel facts or flights."
+            ),
+            "itinerary-critic": (
+                "Review the supplied grounded proposal after deterministic validation. Return JSON matching "
+                "valid, errors, warnings and suggestedRepairs. Do not invent provider facts."
+            ),
+        }
+        if agent_name not in instructions:
+            raise ValueError("Unknown customisation agent")
+        response = await self._client.post(
+            "/chat/completions",
+            json={
+                "model": self._model,
+                "messages": [
+                    {"role": "system", "content": instructions[agent_name]},
+                    {"role": "user", "content": json.dumps(payload)},
+                ],
+                "response_format": {"type": "json_object"},
+                "temperature": 0.1,
+                "max_tokens": 700,
                 "stream": False,
             },
         )

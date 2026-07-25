@@ -10,6 +10,12 @@ describe('privacy and external-link controls', () => {
     })).toEqual({ resortArea: 'negril', interestCount: 2 })
   })
 
+  it('never includes the free-text customisation request in analytics', () => {
+    expect(sanitiseEvent('trip_customisation_generated', {
+      resultMode: 'demo', changeCount: 2, validationOutcome: 'valid', elapsedTimeBand: 'under-2s', request: 'private text',
+    })).toEqual({ resultMode: 'demo', changeCount: 2, validationOutcome: 'valid', elapsedTimeBand: 'under-2s' })
+  })
+
   it('allows sample provider pages and rejects unknown domains', () => {
     expect(getProviderLink(contentItems[0])?.demo).toBe(true)
     expect(getProviderLink({ ...contentItems[0], sourceUrl: 'https://malicious.invalid/leave' })).toBeNull()

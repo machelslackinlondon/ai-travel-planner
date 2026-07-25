@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -7,6 +8,9 @@ from uuid import UUID
 
 from ai_planner import (
     AiPlannerService,
+    CustomisationOrchestrator,
+    CustomisationRequest,
+    CustomisationWorkflowResult,
     ElasticsearchTravelRepository,
     MockTravelRepository,
     PlannerRequest,
@@ -23,6 +27,7 @@ from fastapi.responses import JSONResponse
 from .ai import AiClient, VercelGatewayClient
 from .catalog import build_fallback_narrative, create_plan, load_catalog, score_content, validate_narrative
 from .config import Settings, get_settings
+from .customisation import CatalogueCandidateSearch, UnavailableCustomisationModel, approved_catalogue
 from .models import ContentItem, ProductEvent, ReindexResponse, SearchResponse, TripBrief, TripPlan
 from .repositories.search import CatalogSearchRepository, ElasticsearchRepository, SearchRepository
 from .repositories.trips import (
@@ -31,6 +36,8 @@ from .repositories.trips import (
     TripAlreadyExistsError,
     TripRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class HourlyLimiter:
@@ -85,6 +92,17 @@ def sanitise_event(event: ProductEvent) -> ProductEvent:
         "itinerary_generated": {"generationMode", "searchBackend", "dayCount"},
         "itinerary_saved": {"saveMode"},
         "destination_favourited": {"destinationId", "favourited"},
+        "trip_customisation_offered": {"entryPoint"},
+        "trip_customisation_started": {"mode"},
+        "trip_customisation_generated": {
+            "resultMode",
+            "changeCount",
+            "validationOutcome",
+            "elapsedTimeBand",
+        },
+        "trip_customisation_applied": {"changeCount"},
+        "trip_customisation_abandoned": {"stage"},
+        "trip_customisation_fallback_used": {"resultMode"},
     }
     allowed_values: dict[str, set[str]] = {
         "entryPage": {"planner"},
@@ -98,6 +116,12 @@ def sanitise_event(event: ProductEvent) -> ProductEvent:
         "searchMode": {"catalog", "travel"},
         "requestLengthBand": {"short", "medium", "long"},
         "searchBackend": {"mock", "elasticsearch"},
+        "entryPoint": {"first-itinerary"},
+        "mode": {"customisation"},
+        "resultMode": {"demo", "live", "hybrid-live", "hybrid-fallback", "live-fallback"},
+        "validationOutcome": {"valid", "invalid", "needs-input", "no-results"},
+        "elapsedTimeBand": {"under-2s", "2-5s", "over-5s"},
+        "stage": {"request", "comparison", "validation"},
     }
 
     def valid(key: str, value: str | int | bool) -> bool:
@@ -105,6 +129,8 @@ def sanitise_event(event: ProductEvent) -> ProductEvent:
             return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 3
         if key in {"itemCount", "resultCount"}:
             return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 100
+        if key == "changeCount":
+            return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 30
         if key == "dayCount":
             return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 14
         if key == "destinationId":
@@ -145,6 +171,7 @@ def create_app(
                 active_settings.elasticsearch_api_key,
                 active_settings.elasticsearch_username,
                 active_settings.elasticsearch_password,
+                active_settings.elasticsearch_semantic_field,
                 ),
             )
         else:
@@ -181,6 +208,21 @@ def create_app(
         application.state.ai_planner = AiPlannerService(
             travel_search, gateway if active_settings.ai_enabled else None, active_settings.ai_timeout_ms / 1000
         )
+        customisation_catalogue = approved_catalogue(catalog)
+        if active_settings.agent_mode == "demo":
+            application.state.customisation = CustomisationOrchestrator.demo(
+                customisation_catalogue,
+                diagnostics_enabled=active_settings.agent_diagnostics,
+            )
+        else:
+            application.state.customisation = CustomisationOrchestrator.connected(
+                mode=active_settings.agent_mode,
+                catalogue=customisation_catalogue,
+                model=gateway or UnavailableCustomisationModel(),
+                search=CatalogueCandidateSearch(search),
+                semantic_enabled=bool(active_settings.elasticsearch_semantic_field),
+                diagnostics_enabled=active_settings.agent_diagnostics,
+            )
         application.state.travel_search = travel_search
         application.state.ai_sessions = HourlyLimiter()
         application.state.ai_daily = DailyLimiter()
@@ -210,7 +252,7 @@ def create_app(
     @application.middleware("http")
     async def request_size_limit(request: Request, call_next: Any) -> Response:
         limits = {"/api/plan": 12_000, "/api/ai-planner": 4_000, "/api/events": 3_000}
-        limit = limits.get(request.url.path, 100_000)
+        limit = 50_000 if request.url.path.endswith("/customise") else limits.get(request.url.path, 100_000)
         if request.method in {"POST", "PUT"}:
             declared = int(request.headers.get("content-length", "0") or "0")
             if declared > limit:
@@ -288,6 +330,36 @@ def create_app(
             return await request.app.state.ai_planner.plan(planner_request)
         except ValueError as error:
             raise HTTPException(status_code=503, detail=str(error)) from error
+
+    @application.post("/api/trips/{trip_id}/customise", response_model=CustomisationWorkflowResult)
+    async def customise_trip(
+        trip_id: str,
+        customisation_request: CustomisationRequest,
+        request: Request,
+        owner_id: str = Depends(session_owner),
+    ) -> CustomisationWorkflowResult:
+        if trip_id != customisation_request.tripId or trip_id != customisation_request.originalItinerary.id:
+            raise HTTPException(status_code=400, detail="Path, trip and itinerary IDs must match")
+        if not request.app.state.ai_sessions.allow(owner_id, active_settings.ai_max_session_calls_per_hour):
+            raise HTTPException(status_code=429, detail="Customisation request limit reached")
+        try:
+            result = await asyncio.wait_for(
+                request.app.state.customisation.run(customisation_request),
+                timeout=active_settings.agent_timeout_ms / 1000,
+            )
+        except TimeoutError as error:
+            raise HTTPException(
+                status_code=504,
+                detail="Customisation timed out; the original trip is unchanged",
+            ) from error
+        logger.info(
+            "trip_customisation trace_id=%s status=%s result_mode=%s repair_count=%s",
+            result.traceId,
+            result.status,
+            result.resultMode,
+            result.repairCount,
+        )
+        return result
 
     @application.get("/api/travel-search", response_model=SearchResult)
     async def travel_search(

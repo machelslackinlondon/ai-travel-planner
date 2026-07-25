@@ -1,6 +1,6 @@
 # Visit Jamaica AI Trip Planner
 
-An Nx monorepo for a Next.js/React travel experience and a FastAPI application. It preserves the original editable planner while adding a conversational, retrieval-grounded itinerary path. FastAPI is the only API framework.
+An Nx monorepo for a Next.js/React travel experience and a FastAPI application. AI is used to customise an itinerary only after the traveller has completed their first trip plan. FastAPI is the only API framework.
 
 ## Current architecture
 
@@ -8,40 +8,46 @@ An Nx monorepo for a Next.js/React travel experience and a FastAPI application. 
 apps/web/                 Next.js 16 and React 19 frontend
 apps/api/                 Python 3.11+ FastAPI, MongoDB adapters and Fly.io config
 apps/web-e2e/             Playwright browser tests
-services/ai-planner/      In-process Python retrieval and itinerary service
+services/ai-planner/      In-process Python customisation agents and legacy retrieval service
 mock-data/                Typed repository-managed prototype content and index scripts
 libs/catalog/             Legacy sample catalogue retained for the original planner
 ```
 
-The web app owns presentation and browser-only demo persistence. FastAPI owns request validation, orchestration, CRUD and privacy-filtered analytics. The AI planner is a library in the API process—not a separately deployed microservice. Repository protocols separate planning logic from mock and Elasticsearch implementations.
+The web app owns presentation, explicit Apply/Return decisions and browser-only demo persistence. FastAPI owns request validation, sequential agent orchestration, CRUD and privacy-filtered analytics. The agents are a library in the API process—not separately deployed microservices. Repository protocols separate planning logic from deterministic, model and Elasticsearch adapters.
 
 ```mermaid
 flowchart LR
-  T[Traveller in browser] -->|preferences or natural language| W[Next.js + React web]
+  T[Traveller in browser] -->|brief, then change request| W[Next.js + React web]
   W -->|HTTPS JSON + device session ID| A[FastAPI API]
 
   A -->|trip CRUD| TR[Trip repository]
   TR -->|configured| M[(MongoDB)]
   TR -.->|MongoDB absent| IM[In-memory trip store]
 
-  A --> P[In-process AI planner service]
-  P --> R[Travel search repository]
-  R -->|configured and available| E[(Elasticsearch keyword index)]
-  R -.->|unconfigured or unavailable| MR[Mock travel repository]
+  A --> O[Customisation orchestrator]
+  O --> PF[1. Traveller profiler]
+  PF --> R[2. Candidate retriever]
+  R --> PL[3. Itinerary planner]
+  PL --> C[4. Itinerary critic]
+  C -.->|at most one repair| PL
+  R -->|configured and available| E[(Elasticsearch lexical or hybrid index)]
+  R -.->|unconfigured or unavailable| MR[Approved sample catalogue]
 
   MD[TypeScript mock data] --> EX[Export and index scripts]
   EX --> E
   EX --> JS[Generated JSON snapshot]
   JS --> MR
 
-  P -->|bounded retrieved context only| L[Optional external LLM]
-  L -->|validated narrative JSON| P
-  P -.->|disabled, timeout or invalid output| D[Deterministic itinerary builder]
-  P -->|structured itinerary| A
+  PF -->|bounded inputs| L[Optional external LLM]
+  PL -->|bounded retrieved IDs only| L
+  C -->|structured checks only| L
+  L -->|schema-validated JSON| O
+  O -.->|disabled, timeout or invalid output| D[Deterministic agents]
+  O -->|original + proposed + comparison| A
   A --> W
 ```
 
-Elasticsearch uses conventional text, keyword and numeric fields for destination, category, location, tag, popularity and rating queries. There are no embeddings or vector stores.
+Elasticsearch always supports the lexical path used by this prototype. When `ELASTICSEARCH_SEMANTIC_FIELD` names a compatible `semantic_text` field, retrieval combines lexical and semantic matches with reciprocal-rank fusion. If that capability is absent or fails, hybrid/live mode uses the deterministic approved-catalogue fallback instead of dead-ending the journey. No separate vector database is used.
 
 ## Application onboarding
 
@@ -67,7 +73,7 @@ npm run dev
 Open:
 
 - Web: `http://localhost:3000`
-- Conversational planner: `http://localhost:3000/ai-planner`
+- Trip customiser: create a plan first, then follow its **Customise this trip** action to `/ai-planner?tripId=…`
 - FastAPI: `http://127.0.0.1:4000`
 - OpenAPI docs in development: `http://127.0.0.1:4000/docs`
 - Liveness: `http://127.0.0.1:4000/health/live`
@@ -79,7 +85,7 @@ The committed `.env.example` contains placeholders only. Keep MongoDB, Elasticse
 
 ### Mock data and Elasticsearch
 
-`mock-data/src/*.ts` is the source of truth for the conversational planner. After editing it, validate and regenerate the committed runtime snapshot:
+`libs/catalog/seed/items.json` is the approved sample source used by first-trip planning and customisation. `mock-data/src/*.ts` remains the source for the legacy travel-search endpoint. After editing mock travel data, validate and regenerate its committed runtime snapshot:
 
 ```bash
 npm run mock-data:validate
@@ -92,13 +98,21 @@ To populate the travel index, fill the Elasticsearch placeholders in `.env`, the
 npm run search:index
 ```
 
-This creates or refreshes `ELASTICSEARCH_TRAVEL_INDEX` (default `visit-jamaica-travel`). The existing structured planner keeps its compatibility catalogue and protected `/api/search/reindex` path.
+This creates or refreshes `ELASTICSEARCH_TRAVEL_INDEX` (default `visit-jamaica-travel`). Trip customisation queries `ELASTICSEARCH_INDEX` (default `visit-jamaica-content`), populated through the protected `/api/search/reindex` path. Adding `ELASTICSEARCH_SEMANTIC_FIELD` to a new index mapping requires recreating/reindexing that index; leave it empty for lexical search when the deployment does not support `semantic_text`.
+
+### Customisation modes
+
+- `AGENT_MODE=demo` (default): all four agents run deterministically against approved sample records. The three built-in demo requests are family friendly, relaxed/reduced travel, and more food/culture. Adding “invalid” exercises the single repair pass.
+- `AGENT_MODE=live`: model-backed profiling/planning/critique and Elasticsearch retrieval are attempted; any unavailable or invalid step falls back to its deterministic adapter and is labelled `live-fallback`.
+- `AGENT_MODE=hybrid`: connected steps are used where available and deterministic adapters fill gaps; results are labelled `hybrid-live` or `hybrid-fallback`.
+
+For live/hybrid mode, set `AI_ENABLED=true`, `AI_GATEWAY_API_KEY`, `ELASTICSEARCH_URL`, and supported Elastic credentials. Set `ELASTICSEARCH_SEMANTIC_FIELD` only when that mapped field exists. `AGENT_TIMEOUT_MS` bounds the complete chain; `AGENT_DIAGNOSTICS` enables coarse diagnostics but never permits raw change requests in analytics.
 
 ### Demo and fallback behavior
 
 - No `MONGODB_URI`: trip CRUD uses process memory, while the browser keeps its existing local fallback.
-- No `ELASTICSEARCH_URL`, an unavailable index, or a failed query: the AI planner reads the generated mock-data snapshot.
-- `AI_ENABLED=false`, no gateway key, a timeout, or invalid model JSON: retrieved records are arranged deterministically.
+- No `ELASTICSEARCH_URL`, an unavailable index, or a failed query: trip customisation retrieves from the approved catalogue deterministically.
+- `AI_ENABLED=false`, no gateway key, a timeout, or invalid model JSON: the relevant customisation agent uses its deterministic adapter.
 - All visible records are sample data. Availability, accessibility, ratings and prices must be checked with a provider.
 
 ### Validation commands
@@ -124,17 +138,18 @@ npx nx run api:docker-build
 
 ## First-use product journey
 
-The structured journey at `/plan` collects timing, party, destination, interests, pace, spend and practical needs. It ranks approved sample content, generates an editable outline, and lets the visitor replace, remove or reorder ideas before saving to MongoDB or the browser.
+The structured journey at `/plan` collects timing, party, destination, interests, pace, spend and practical needs. It ranks approved sample content, generates an editable outline, and then offers **Keep this trip** or **Customise this trip**. There is intentionally no AI-planner link in primary navigation.
 
-The conversational journey at `/ai-planner` accepts a plain-language request. FastAPI interprets it, retrieves repository records through Elasticsearch or the mock fallback, gives the optional LLM only that bounded context, validates the response and renders a day timeline, destination/activity cards and a budget notice. The visitor can favourite the interpreted destination and save the itinerary locally.
+The customisation route requires a current trip. It summarises that trip and asks “What would you like to change?” FastAPI runs Profiler → Retriever → Planner → Critic in order, with at most one repair. The UI compares added, removed and moved items. The original remains untouched until **Apply changes**; the traveller can retry or return to the original. Browser/Mongo persistence is reused after Apply. Flights are explicitly outside scope.
 
 ## API additions
 
-- `POST /api/ai-planner` — validate a natural-language request and return a grounded structured itinerary.
+- `POST /api/trips/{trip_id}/customise` — return a grounded draft, comparison and critic result without mutating the saved trip.
+- `POST /api/ai-planner` — legacy grounded itinerary endpoint retained for compatibility; it is no longer a primary-navigation journey.
 - `GET /api/travel-search` — search mock/Elasticsearch travel records by query, destination, type, tag and price level.
 - Existing `/api/plan`, `/api/trips`, `/api/search`, `/api/search/reindex`, `/api/events` and health routes remain compatible.
 
-Analytics events are allowlisted and property-filtered. The implementation tracks search, destination views, planner requests, generated/saved itineraries and favourites without sending the natural-language request. The event boundary can later be adapted to Snowplow without changing UI calls.
+Analytics events are allowlisted and property-filtered. Customisation records only offered/started/generated/applied/abandoned/fallback signals plus coarse mode, count, outcome and time bands. Raw change text, inferred profile values, accessibility choices and itinerary contents are never sent.
 
 ## Architecture assessment and recommendations
 
@@ -144,17 +159,20 @@ MongoDB remains practical for device-scoped itinerary documents and event intake
 
 ## Roadmap
 
-1. **Prototype (implemented):** repository mock data, keyword Elasticsearch retrieval, optional bounded LLM generation, deterministic fallback and lightweight analytics.
+1. **Prototype (implemented):** first-trip customisation, four typed agents, optional lexical/hybrid Elasticsearch retrieval, bounded model calls, deterministic fallback and privacy-safe analytics.
 2. **Content platform:** CMS editorial workflow, PostgreSQL system of record and reliable Elasticsearch synchronization.
-3. **Advanced search:** only after measured need, evaluate embeddings and hybrid retrieval alongside keyword search.
-4. **Agent platform:** only after governance and observability mature, separate profile, recommendation, planning and validation responsibilities.
+3. **Search evaluation:** measure lexical versus `semantic_text` hybrid relevance, latency and free-tier resource use before expanding semantic infrastructure.
+4. **Agent operations:** add governed tracing and evaluation before considering separately deployed agent services.
 
 ## Technical risks and scalability
 
+- Opening hours, duration, transition and accessibility metadata added by the customisation adapter are clearly labelled prototype assumptions. Replace them with provider/CMS records before production; most sample records do not yet include coordinates.
+- Hybrid retrieval assumes a compatible Elastic deployment and a separately mapped `semantic_text` field containing title, summary and interests. Lexical search and deterministic retrieval remain the safe defaults when semantic inference is unsupported.
+- Live model use still requires a real Vercel AI Gateway key; connected MongoDB and Elasticsearch use real deployment credentials that are intentionally absent from this repository.
 - Mock records can drift from the generated JSON; CI should run validation/export and fail on an uncommitted diff.
 - The in-memory rate limiter and fallback trip store are per process; production needs shared enforcement and durable identity before horizontal scaling.
 - Device UUIDs scope data but are not authentication. Add verified identity before storing sensitive or long-lived traveller data.
-- Elasticsearch and model output can change ranking or wording. Preserve source IDs, schema validation, timeouts and deterministic fallbacks.
+- Elasticsearch and model output can change ranking or wording. Preserve source IDs, schema validation, timeouts, critic checks and deterministic fallbacks.
 - Local browser saves are intentionally limited and not cross-device. Promote conversational itineraries into the existing trip repository after the product contract is settled.
 - The checked-in dataset is small. Before adding caches, streams or services, measure index size, query latency, API throughput and LLM cost.
 

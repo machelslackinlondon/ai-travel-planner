@@ -101,6 +101,12 @@ class ProductEvent(ApiModel):
         "itinerary_generated",
         "itinerary_saved",
         "destination_favourited",
+        "trip_customisation_offered",
+        "trip_customisation_started",
+        "trip_customisation_generated",
+        "trip_customisation_applied",
+        "trip_customisation_abandoned",
+        "trip_customisation_fallback_used",
     ]
     properties: dict[str, str | int | bool] = Field(default_factory=dict)
 
