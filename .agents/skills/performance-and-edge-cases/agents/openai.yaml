@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance and Edge Cases"
+  short_description: "Analyse performance and edge-case risks"
+  default_prompt: "Use $performance-and-edge-cases to review the implementation for performance concerns and edge cases."

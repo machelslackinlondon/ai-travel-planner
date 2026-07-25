@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Review code changes for production risk"
+  default_prompt: "Use $code-review to review this branch for correctness, risk, tests, security, and maintainability."

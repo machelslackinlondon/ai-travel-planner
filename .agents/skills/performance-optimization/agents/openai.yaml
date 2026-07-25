@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Optimization"
+  short_description: "Optimize performance with measured evidence"
+  default_prompt: "Use $performance-optimization to identify the bottleneck and make a validated performance improvement."

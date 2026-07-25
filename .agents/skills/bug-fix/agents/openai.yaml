@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Fix"
+  short_description: "Fix bugs with scoped regression validation"
+  default_prompt: "Use $bug-fix to reproduce and fix the reported bug with targeted validation."

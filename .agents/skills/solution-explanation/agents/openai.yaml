@@ -1,0 +1,4 @@
+interface:
+  display_name: "Solution Explanation"
+  short_description: "Explain the implemented solution and rationale"
+  default_prompt: "Use $solution-explanation to summarise the implementation, key decisions, and trade-offs."

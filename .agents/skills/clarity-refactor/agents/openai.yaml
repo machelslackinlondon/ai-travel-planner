@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clarity Refactor"
+  short_description: "Refactor the implementation for clarity without changing behavior"
+  default_prompt: "Use $clarity-refactor to improve readability and maintainability while preserving function."

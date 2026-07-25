@@ -1,0 +1,4 @@
+interface:
+  display_name: "Change Review"
+  short_description: "Review each incremental change before proceeding"
+  default_prompt: "Use $change-review to inspect the latest change for correctness, clarity, and unintended risk."

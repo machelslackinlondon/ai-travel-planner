@@ -1,0 +1,7 @@
+interface:
+  display_name: "Playwright CLI"
+  short_description: "Automate and test browser workflows"
+  default_prompt: "Use $playwright-cli to inspect or test this browser workflow with Playwright."
+
+policy:
+  allow_implicit_invocation: false

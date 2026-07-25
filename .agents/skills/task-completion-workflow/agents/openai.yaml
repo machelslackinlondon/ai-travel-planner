@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Completion Workflow"
+  short_description: "Orchestrate the full task completion lifecycle"
+  default_prompt: "Use $task-completion-workflow to guide the full workflow from understanding to final summary with approval gates."

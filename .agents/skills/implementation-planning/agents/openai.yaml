@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implementation Planning"
+  short_description: "Create a concrete implementation plan"
+  default_prompt: "Use $implementation-planning to break the work into an ordered implementation plan with validation steps."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Review and Refinement"
+  short_description: "Review and refine the proposed plan with the user"
+  default_prompt: "Use $plan-review-and-refinement to present, review, and refine the implementation plan before coding."

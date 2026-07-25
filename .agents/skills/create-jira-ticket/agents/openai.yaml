@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Jira Ticket"
+  short_description: "Create or draft Jira issues through MCP"
+  default_prompt: "Use $create-jira-ticket to validate, deduplicate, and create or draft this Jira issue."

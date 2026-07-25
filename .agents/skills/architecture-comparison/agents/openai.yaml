@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Comparison"
+  short_description: "Compare design options and recommend a path"
+  default_prompt: "Use $architecture-comparison to compare implementation approaches and surface the trade-offs."

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Azure Diagnostics"
+  short_description: "Triage Azure production and observability issues"
+  default_prompt: "Use $azure-diagnostics to diagnose this Azure issue safely, beginning with read-only evidence collection."
+
+policy:
+  allow_implicit_invocation: false

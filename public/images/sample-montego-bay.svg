@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Sample Montego Bay destination placeholder</title><desc id="desc">Abstract green hills, gold sun and blue water, marked sample image.</desc>
+  <rect width="1200" height="675" fill="#f3fff1"/><circle cx="930" cy="150" r="74" fill="#ffb81d"/><path d="M0 405 310 190l260 215 210-150 420 220v200H0z" fill="#228913"/><path d="M0 485q300-90 600 0t600 0v190H0z" fill="#67c8d2"/><text x="54" y="78" font-family="system-ui" font-size="38" font-weight="700" fill="#171717">SAMPLE IMAGE · MONTEGO BAY</text>
+</svg>

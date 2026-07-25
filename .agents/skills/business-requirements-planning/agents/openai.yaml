@@ -1,0 +1,4 @@
+interface:
+  display_name: "Business Requirements Planning"
+  short_description: "Plan requirements into delivery phases"
+  default_prompt: "Use $business-requirements-planning to turn this business requirement into an implementation-ready plan."

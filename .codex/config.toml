@@ -1,0 +1,53 @@
+# Project-scoped MCP servers. Codex loads this file for trusted projects.
+
+[mcp_servers.filesystem]
+command = "/opt/homebrew/bin/npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem@2026.7.10", "/Users/mslack/Documents/projects/ai-travel-planner"]
+cwd = "/Users/mslack/Documents/projects/ai-travel-planner"
+env = { PATH = "/opt/homebrew/bin:/usr/bin:/bin" }
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.playwright]
+command = "/opt/homebrew/bin/npx"
+args = ["-y", "@playwright/mcp@0.0.78", "--isolated"]
+cwd = "/Users/mslack/Documents/projects/ai-travel-planner"
+env = { PATH = "/opt/homebrew/bin:/usr/bin:/bin" }
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.fetch]
+command = "/opt/homebrew/bin/uvx"
+args = ["--from", "mcp-server-fetch==2026.7.10", "mcp-server-fetch"]
+cwd = "/Users/mslack/Documents/projects/ai-travel-planner"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.image_generation]
+command = "/opt/homebrew/bin/npx"
+args = ["-y", "mcp-imagenate@0.3.1"]
+cwd = "/Users/mslack/Documents/projects/ai-travel-planner"
+env = { PATH = "/opt/homebrew/bin:/usr/bin:/bin", NANO_BANANA_OUTPUT_DIR = "/Users/mslack/Documents/projects/ai-travel-planner/.codex/generated-images" }
+env_vars = ["OPENAI_API_KEY", "GPT_IMAGE_API_KEY", "GEMINI_API_KEY", "NANO_BANANA_API_KEY", "BFL_API_KEY"]
+startup_timeout_sec = 30
+tool_timeout_sec = 300
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.memory]
+command = "/opt/homebrew/bin/npx"
+args = ["-y", "@modelcontextprotocol/server-memory@2026.7.4"]
+cwd = "/Users/mslack/Documents/projects/ai-travel-planner"
+env = { PATH = "/opt/homebrew/bin:/usr/bin:/bin", MEMORY_FILE_PATH = "/Users/mslack/Documents/projects/ai-travel-planner/.codex/memory/knowledge-graph.jsonl" }
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+default_tools_approval_mode = "prompt"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Risk Discovery"
+  short_description: "Find production risks and mitigations"
+  default_prompt: "Use $risk-discovery to inspect this repository and produce a prioritized risk register."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Checklist Generation"
+  short_description: "Turn the approved plan into an incremental checklist"
+  default_prompt: "Use $task-checklist-generation to break the approved plan into executable tasks with completion criteria."

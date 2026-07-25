@@ -1,0 +1,68 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Planning",
+      "description": "Skills for turning intent into implementation-ready plans and risk registers.",
+      "skills": [
+        "business-requirements-planning",
+        "risk-discovery",
+        "problem-understanding",
+        "requirements-extraction",
+        "implementation-planning",
+        "plan-review-and-refinement",
+        "architecture-comparison",
+        "task-checklist-generation"
+      ]
+    },
+    {
+      "title": "Engineering",
+      "description": "Skills for building, fixing, refactoring, optimizing, and bootstrapping software.",
+      "skills": [
+        "bug-fix",
+        "feature-build",
+        "refactor",
+        "performance-optimization",
+        "project-bootstrap",
+        "iterative-implementation",
+        "change-review",
+        "testing-and-validation",
+        "performance-and-edge-cases",
+        "clarity-refactor"
+      ]
+    },
+    {
+      "title": "Review & Tools",
+      "description": "Skills for code review and external workflow automation.",
+      "skills": [
+        "code-review",
+        "create-jira-ticket",
+        "solution-explanation",
+        "interviewer-prep",
+        "assumptions-and-tradeoffs",
+        "task-completion-workflow"
+      ]
+    },
+    {
+      "title": "CI & Security",
+      "description": "Specialist skills for CI diagnosis, static analysis, and software supply-chain risk.",
+      "skills": [
+        "gh-fix-ci",
+        "codeql",
+        "supply-chain-risk-auditor"
+      ]
+    },
+    {
+      "title": "Web, Data & Cloud",
+      "description": "Stack-specific skills for browser testing, accessibility, React, Postgres, and Azure operations.",
+      "skills": [
+        "playwright-cli",
+        "accessibility",
+        "vercel-react-best-practices",
+        "supabase-postgres-best-practices",
+        "azure-diagnostics"
+      ]
+    }
+  ]
+}

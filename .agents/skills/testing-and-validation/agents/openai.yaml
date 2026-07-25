@@ -1,0 +1,4 @@
+interface:
+  display_name: "Testing and Validation"
+  short_description: "Run and report the relevant validation steps"
+  default_prompt: "Use $testing-and-validation to run the appropriate tests and report the outcome."

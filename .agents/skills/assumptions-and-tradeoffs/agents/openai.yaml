@@ -1,0 +1,4 @@
+interface:
+  display_name: "Assumptions and Trade-offs"
+  short_description: "Summarise assumptions, limitations, and trade-offs"
+  default_prompt: "Use $assumptions-and-tradeoffs to capture the decision context and final trade-offs."

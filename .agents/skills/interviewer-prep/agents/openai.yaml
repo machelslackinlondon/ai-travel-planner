@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interviewer Preparation"
+  short_description: "Prepare likely interview questions and answers"
+  default_prompt: "Use $interviewer-prep to simulate likely questions and draft concise responses."

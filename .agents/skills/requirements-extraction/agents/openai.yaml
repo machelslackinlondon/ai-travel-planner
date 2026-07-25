@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements Extraction"
+  short_description: "Turn the problem into clear requirements and acceptance criteria"
+  default_prompt: "Use $requirements-extraction to distill the task into explicit requirements and testable acceptance criteria."

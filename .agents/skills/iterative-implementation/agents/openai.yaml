@@ -1,0 +1,4 @@
+interface:
+  display_name: "Iterative Implementation"
+  short_description: "Implement one task at a time with focused validation"
+  default_prompt: "Use $iterative-implementation to complete the next checklist item with a focused, reviewable change."

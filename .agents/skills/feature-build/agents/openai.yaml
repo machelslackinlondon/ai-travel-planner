@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Build"
+  short_description: "Build scoped features with validation"
+  default_prompt: "Use $feature-build to implement this feature using the repository's existing patterns."

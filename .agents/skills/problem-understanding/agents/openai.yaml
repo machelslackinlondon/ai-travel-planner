@@ -1,0 +1,4 @@
+interface:
+  display_name: "Problem Understanding"
+  short_description: "Read and frame the problem before implementation"
+  default_prompt: "Use $problem-understanding to restate the task, identify constraints, and surface missing context."

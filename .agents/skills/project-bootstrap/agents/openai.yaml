@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Bootstrap"
+  short_description: "Scaffold production-minded projects"
+  default_prompt: "Use $project-bootstrap to propose and scaffold this new project or service."
