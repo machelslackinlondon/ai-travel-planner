@@ -9,6 +9,10 @@ def default_catalog_path() -> str:
     return str(Path(__file__).resolve().parents[3] / "libs/catalog/seed/items.json")
 
 
+def default_travel_catalog_path() -> str:
+    return str(Path(__file__).resolve().parents[3] / "mock-data/generated/search-documents.json")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", "../../.env"),
@@ -21,6 +25,9 @@ class Settings(BaseSettings):
     demo_mode: bool = Field(default=True, validation_alias="DEMO_MODE")
     cors_origins: str = Field(default="http://localhost:3000,http://127.0.0.1:3000", validation_alias="CORS_ORIGINS")
     catalog_path: str = Field(default_factory=default_catalog_path, validation_alias="CATALOG_PATH")
+    travel_catalog_path: str = Field(
+        default_factory=default_travel_catalog_path, validation_alias="TRAVEL_CATALOG_PATH"
+    )
 
     mongodb_uri: str | None = Field(default=None, validation_alias="MONGODB_URI")
     mongodb_database: str = Field(default="visit_jamaica", validation_alias="MONGODB_DATABASE")
@@ -30,6 +37,9 @@ class Settings(BaseSettings):
     elasticsearch_username: str | None = Field(default=None, validation_alias="ELASTICSEARCH_USERNAME")
     elasticsearch_password: str | None = Field(default=None, validation_alias="ELASTICSEARCH_PASSWORD")
     elasticsearch_index: str = Field(default="visit-jamaica-content", validation_alias="ELASTICSEARCH_INDEX")
+    elasticsearch_travel_index: str = Field(
+        default="visit-jamaica-travel", validation_alias="ELASTICSEARCH_TRAVEL_INDEX"
+    )
     elasticsearch_auto_index: bool = Field(default=False, validation_alias="ELASTICSEARCH_AUTO_INDEX")
     search_admin_key: str | None = Field(default=None, validation_alias="SEARCH_ADMIN_KEY")
 

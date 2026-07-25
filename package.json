@@ -8,25 +8,30 @@
   },
   "packageManager": "npm@11.16.0",
   "workspaces": [
-    "apps/web"
+    "apps/web",
+    "mock-data"
   ],
   "scripts": {
     "dev": "nx run-many --target=dev --projects=api,web --parallel=2",
     "dev:web": "nx run web:dev",
     "dev:api": "nx run api:dev",
-    "build": "nx run-many --target=build --projects=api,web",
-    "typecheck": "nx run-many --target=typecheck --projects=api,web",
-    "test": "nx run-many --target=test --projects=api,web",
+    "build": "nx run-many --target=build --projects=api,ai-planner,mock-data,web",
+    "typecheck": "nx run-many --target=typecheck --projects=api,ai-planner,mock-data,web",
+    "test": "nx run-many --target=test --projects=api,ai-planner,mock-data,web",
     "test:e2e": "nx run web-e2e:e2e",
-    "lint": "nx run-many --target=lint --projects=api,web,catalog",
+    "lint": "nx run-many --target=lint --projects=api,ai-planner,mock-data,web,catalog",
     "seed": "nx run web:seed",
+    "mock-data:validate": "nx run mock-data:validate",
+    "mock-data:export": "nx run mock-data:export",
+    "search:index": "nx run mock-data:index",
     "graph": "nx graph",
     "deploy:web": "nx run web:deploy",
     "deploy:api": "nx run api:deploy"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
-    "nx": "^22.0.0"
+    "nx": "^22.0.0",
+    "tsx": "^4.23.1"
   },
   "overrides": {
     "next": {

@@ -93,3 +93,21 @@ def test_plan_payload_size_is_bounded() -> None:
         )
 
     assert response.status_code == 413
+
+
+def test_conversational_planner_uses_repository_grounded_fallback() -> None:
+    app = create_app(Settings(ai_enabled=False))
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/ai-planner",
+            headers=HEADERS,
+            json={"request": "Create a 3 day family itinerary in Montego Bay"},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["generationMode"] == "fallback"
+    assert payload["searchBackend"] == "mock"
+    assert payload["interpretedRequest"]["destination"] == "montego-bay"
+    assert len(payload["days"]) == 3
+    assert set(payload["sources"]) >= {activity["id"] for day in payload["days"] for activity in day["activities"]}

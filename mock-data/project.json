@@ -1,0 +1,16 @@
+{
+  "name": "mock-data",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "mock-data/src",
+  "tags": ["type:data", "scope:shared"],
+  "targets": {
+    "build": { "executor": "nx:run-commands", "options": { "command": "tsc --noEmit -p mock-data/tsconfig.json" } },
+    "typecheck": { "executor": "nx:run-commands", "options": { "command": "tsc --noEmit -p mock-data/tsconfig.json" } },
+    "lint": { "executor": "nx:run-commands", "options": { "command": "tsc --noEmit -p mock-data/tsconfig.json" } },
+    "test": { "executor": "nx:run-commands", "options": { "command": "vitest run mock-data/src/data.test.ts" } },
+    "validate": { "executor": "nx:run-commands", "options": { "command": "node --import tsx mock-data/src/validate.ts" } },
+    "export": { "executor": "nx:run-commands", "outputs": ["{projectRoot}/generated"], "options": { "command": "node --import tsx mock-data/src/export.ts" } },
+    "index": { "executor": "nx:run-commands", "cache": false, "options": { "command": "node --env-file=.env --import tsx mock-data/src/index-elasticsearch.ts" } }
+  }
+}

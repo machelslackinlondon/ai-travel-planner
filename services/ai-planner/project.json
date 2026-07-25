@@ -1,0 +1,14 @@
+{
+  "name": "ai-planner",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "services/ai-planner/ai_planner",
+  "tags": ["type:service", "scope:ai", "platform:python"],
+  "implicitDependencies": ["mock-data"],
+  "targets": {
+    "build": { "executor": "nx:run-commands", "options": { "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=services/ai-planner uv run --no-sync --project apps/api python -m compileall -q services/ai-planner/ai_planner" } },
+    "lint": { "executor": "nx:run-commands", "options": { "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=services/ai-planner uv run --no-sync --project apps/api ruff check services/ai-planner/ai_planner services/ai-planner/tests" } },
+    "typecheck": { "executor": "nx:run-commands", "options": { "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=services/ai-planner uv run --no-sync --project apps/api mypy services/ai-planner/ai_planner" } },
+    "test": { "executor": "nx:run-commands", "options": { "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=services/ai-planner uv run --no-sync --project apps/api pytest services/ai-planner/tests" } }
+  }
+}

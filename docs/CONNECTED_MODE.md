@@ -22,9 +22,10 @@ The device UUID is pseudonymous access scoping, not authentication. Introduce a 
 ```bash
 curl -X POST http://127.0.0.1:4000/api/search/reindex \
   -H "x-admin-key: $SEARCH_ADMIN_KEY"
+npm run search:index
 ```
 
-Search automatically uses the checked-in catalogue when Elasticsearch is not configured.
+The protected endpoint refreshes the legacy catalogue index; `npm run search:index` refreshes the conversational planner's typed mock-data index. Search automatically uses checked-in repository data when Elasticsearch is not configured or unavailable.
 
 ## Vercel AI Gateway
 

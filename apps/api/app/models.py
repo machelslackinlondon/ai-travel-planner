@@ -95,6 +95,12 @@ class ProductEvent(ApiModel):
         "plan_generated",
         "plan_saved",
         "provider_handoff_opened",
+        "search_performed",
+        "destination_viewed",
+        "ai_planner_requested",
+        "itinerary_generated",
+        "itinerary_saved",
+        "destination_favourited",
     ]
     properties: dict[str, str | int | bool] = Field(default_factory=dict)
 

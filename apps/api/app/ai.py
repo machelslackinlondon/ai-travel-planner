@@ -8,6 +8,7 @@ from .models import ContentItem, TripBrief
 
 class AiClient(Protocol):
     async def generate(self, brief: TripBrief, shortlist: list[ContentItem]) -> Any: ...
+    async def generate_planner_narrative(self, request: str, context: list[dict[str, Any]], days: int) -> Any: ...
     async def close(self) -> None: ...
 
 
@@ -68,3 +69,26 @@ class VercelGatewayClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    async def generate_planner_narrative(self, request: str, context: list[dict[str, Any]], days: int) -> Any:
+        instruction = (
+            "Create concise itinerary wording using only the supplied repository records. Return only JSON with "
+            "tripName, summary and dayTitles. Never introduce places, facts, prices, availability or claims that "
+            f"are not in the context. Return exactly {days} dayTitles."
+        )
+        response = await self._client.post(
+            "/chat/completions",
+            json={
+                "model": self._model,
+                "messages": [
+                    {"role": "system", "content": instruction},
+                    {"role": "user", "content": json.dumps({"request": request, "context": context})},
+                ],
+                "response_format": {"type": "json_object"},
+                "temperature": 0.2,
+                "max_tokens": 500,
+                "stream": False,
+            },
+        )
+        response.raise_for_status()
+        return json.loads(response.json()["choices"][0]["message"]["content"])

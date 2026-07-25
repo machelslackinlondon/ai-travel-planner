@@ -1,0 +1,350 @@
+[
+  {
+    "id": "montego-bay",
+    "type": "destination",
+    "name": "Montego Bay",
+    "description": "A lively coastal base for beaches, food, culture and family trips.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "family",
+      "food",
+      "beach",
+      "luxury"
+    ],
+    "popularity": 96,
+    "rating": 4.7,
+    "priceLevel": "mid-range",
+    "category": [
+      "coast",
+      "city",
+      "family"
+    ]
+  },
+  {
+    "id": "negril",
+    "type": "destination",
+    "name": "Negril",
+    "description": "A relaxed west-coast destination known for long beaches and sunsets.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "romantic",
+      "beach",
+      "relaxation",
+      "luxury"
+    ],
+    "popularity": 94,
+    "rating": 4.8,
+    "priceLevel": "mid-range",
+    "category": [
+      "coast",
+      "romantic",
+      "relaxed"
+    ]
+  },
+  {
+    "id": "ocho-rios",
+    "type": "destination",
+    "name": "Ocho Rios",
+    "description": "A north-coast base for waterfalls, gardens and active excursions.",
+    "regionId": "north-coast-jamaica",
+    "destinationId": "ocho-rios",
+    "tags": [
+      "family",
+      "nature",
+      "active"
+    ],
+    "popularity": 88,
+    "rating": 4.6,
+    "priceLevel": "mid-range",
+    "category": [
+      "coast",
+      "adventure"
+    ]
+  },
+  {
+    "id": "doctor-cave-beach",
+    "type": "attraction",
+    "name": "Doctor's Cave Beach",
+    "description": "Sample beach stop close to central Montego Bay.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "beach",
+      "family",
+      "swimming"
+    ],
+    "popularity": 91,
+    "rating": 4.6,
+    "priceLevel": "value",
+    "category": [
+      "beach"
+    ]
+  },
+  {
+    "id": "seven-mile-beach",
+    "type": "attraction",
+    "name": "Seven Mile Beach",
+    "description": "Sample long-beach experience for a relaxed Negril day.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "beach",
+      "romantic",
+      "sunset"
+    ],
+    "popularity": 98,
+    "rating": 4.9,
+    "priceLevel": "free",
+    "category": [
+      "beach"
+    ]
+  },
+  {
+    "id": "dunns-river",
+    "type": "attraction",
+    "name": "Dunn's River Falls",
+    "description": "Sample waterfall and outdoor attraction near Ocho Rios.",
+    "regionId": "north-coast-jamaica",
+    "destinationId": "ocho-rios",
+    "tags": [
+      "nature",
+      "active",
+      "family"
+    ],
+    "popularity": 97,
+    "rating": 4.7,
+    "priceLevel": "mid-range",
+    "category": [
+      "nature"
+    ]
+  },
+  {
+    "id": "mobay-family-resort",
+    "type": "hotel",
+    "name": "Montego Bay Family Resort",
+    "description": "Sample family-friendly resort with pool and beach access.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "family",
+      "beach",
+      "resort"
+    ],
+    "popularity": 82,
+    "rating": 4.4,
+    "priceLevel": "mid-range",
+    "category": [
+      "pool",
+      "beach",
+      "family rooms"
+    ]
+  },
+  {
+    "id": "negril-cliff-retreat",
+    "type": "hotel",
+    "name": "Negril Cliff Retreat",
+    "description": "Sample premium stay for couples seeking a quiet sunset base.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "romantic",
+      "luxury",
+      "relaxation"
+    ],
+    "popularity": 86,
+    "rating": 4.7,
+    "priceLevel": "premium",
+    "category": [
+      "sea view",
+      "spa",
+      "restaurant"
+    ]
+  },
+  {
+    "id": "ocho-garden-hotel",
+    "type": "hotel",
+    "name": "Ocho Rios Garden Hotel",
+    "description": "Sample value hotel close to north-coast attractions.",
+    "regionId": "north-coast-jamaica",
+    "destinationId": "ocho-rios",
+    "tags": [
+      "family",
+      "value",
+      "nature"
+    ],
+    "popularity": 74,
+    "rating": 4.2,
+    "priceLevel": "value",
+    "category": [
+      "breakfast",
+      "pool"
+    ]
+  },
+  {
+    "id": "mobay-market-kitchen",
+    "type": "restaurant",
+    "name": "Montego Bay Market Kitchen",
+    "description": "Sample casual stop for Jamaican flavours and local produce.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "food",
+      "family",
+      "local"
+    ],
+    "popularity": 84,
+    "rating": 4.5,
+    "priceLevel": "value",
+    "category": [
+      "Jamaican",
+      "Caribbean"
+    ]
+  },
+  {
+    "id": "negril-sunset-table",
+    "type": "restaurant",
+    "name": "Negril Sunset Table",
+    "description": "Sample dinner setting for couples overlooking the west coast.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "food",
+      "romantic",
+      "sunset",
+      "luxury"
+    ],
+    "popularity": 89,
+    "rating": 4.7,
+    "priceLevel": "premium",
+    "category": [
+      "Seafood",
+      "Caribbean"
+    ]
+  },
+  {
+    "id": "ocho-jerk-garden",
+    "type": "restaurant",
+    "name": "Ocho Rios Jerk Garden",
+    "description": "Sample relaxed Jamaican lunch after an active morning.",
+    "regionId": "north-coast-jamaica",
+    "destinationId": "ocho-rios",
+    "tags": [
+      "food",
+      "family",
+      "local"
+    ],
+    "popularity": 80,
+    "rating": 4.4,
+    "priceLevel": "value",
+    "category": [
+      "Jamaican"
+    ]
+  },
+  {
+    "id": "mobay-history-walk",
+    "type": "activity",
+    "name": "Montego Bay History Walk",
+    "description": "Sample guided introduction to local history and culture.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "culture",
+      "history",
+      "family"
+    ],
+    "popularity": 76,
+    "rating": 4.5,
+    "priceLevel": "value",
+    "category": [
+      "culture",
+      "history",
+      "family"
+    ]
+  },
+  {
+    "id": "negril-sunset-sail",
+    "type": "activity",
+    "name": "Negril Sunset Sail",
+    "description": "Sample coastal sailing experience designed for a slower evening.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "romantic",
+      "sunset",
+      "relaxation"
+    ],
+    "popularity": 90,
+    "rating": 4.8,
+    "priceLevel": "premium",
+    "category": [
+      "romantic",
+      "sunset",
+      "relaxation"
+    ]
+  },
+  {
+    "id": "ocho-waterfall-day",
+    "type": "activity",
+    "name": "Ocho Rios Waterfall Day",
+    "description": "Sample active excursion combining waterfalls and gardens.",
+    "regionId": "north-coast-jamaica",
+    "destinationId": "ocho-rios",
+    "tags": [
+      "nature",
+      "active",
+      "family"
+    ],
+    "popularity": 92,
+    "rating": 4.7,
+    "priceLevel": "mid-range",
+    "category": [
+      "nature",
+      "active",
+      "family"
+    ]
+  },
+  {
+    "id": "mobay-food-weekend",
+    "type": "event",
+    "name": "Montego Bay Food Weekend",
+    "description": "Sample seasonal programme celebrating Jamaican food.",
+    "regionId": "western-jamaica",
+    "destinationId": "montego-bay",
+    "tags": [
+      "food",
+      "culture",
+      "event"
+    ],
+    "popularity": 72,
+    "rating": 4.3,
+    "priceLevel": "mid-range",
+    "category": [
+      "food",
+      "culture",
+      "event"
+    ]
+  },
+  {
+    "id": "negril-sunset-series",
+    "type": "event",
+    "name": "Negril Sunset Series",
+    "description": "Sample evening music and food programme on the west coast.",
+    "regionId": "western-jamaica",
+    "destinationId": "negril",
+    "tags": [
+      "music",
+      "food",
+      "romantic"
+    ],
+    "popularity": 75,
+    "rating": 4.4,
+    "priceLevel": "value",
+    "category": [
+      "music",
+      "food",
+      "romantic"
+    ]
+  }
+]

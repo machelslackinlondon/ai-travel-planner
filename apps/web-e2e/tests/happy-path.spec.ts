@@ -41,3 +41,23 @@ test('a visitor builds, edits and saves a useful account-free plan', async ({ pa
   await expect(page.getByRole('heading', { name: 'Saved trips' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Open trip' })).toBeVisible()
 })
+
+test('a visitor builds and saves a retrieval-grounded conversational itinerary', async ({ page }) => {
+  await page.goto('/ai-planner')
+  await expect(page.getByRole('heading', { name: 'Describe the Jamaica trip you want' })).toBeVisible()
+  await page.getByRole('button', { name: 'Build itinerary' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Montego Bay trip' })).toBeVisible()
+  await expect(page.getByText('The LLM is disabled or unavailable')).toBeVisible()
+  await expect(page.getByText('Day 1')).toBeVisible()
+  await expect(page.getByText('Sample rating:').first()).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+  await page.getByRole('button', { name: 'Favourite destination' }).click()
+  await expect(page.getByRole('button', { name: 'Favourited' })).toBeVisible()
+  await page.getByRole('button', { name: 'Save itinerary' }).click()
+  await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible()
+  await page.goto('/saved')
+  await expect(page.getByRole('heading', { name: 'Conversational itineraries' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Montego Bay trip' })).toBeVisible()
+})

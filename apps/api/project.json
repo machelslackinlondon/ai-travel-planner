@@ -4,7 +4,7 @@
   "projectType": "application",
   "sourceRoot": "apps/api/app",
   "tags": ["type:app", "platform:python", "deployment:fly"],
-  "implicitDependencies": ["catalog"],
+  "implicitDependencies": ["catalog", "mock-data", "ai-planner"],
   "targets": {
     "sync": {
       "executor": "nx:run-commands",
@@ -17,31 +17,31 @@
       "executor": "nx:run-commands",
       "continuous": true,
       "options": {
-        "command": "env UV_CACHE_DIR=.cache/uv uv run --no-sync --project apps/api uvicorn app.main:app --reload --reload-dir apps/api/app --host 127.0.0.1 --port 4000"
+        "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=apps/api:services/ai-planner uv run --no-sync --project apps/api uvicorn app.main:app --reload --reload-dir apps/api/app --reload-dir services/ai-planner/ai_planner --host 127.0.0.1 --port 4000"
       }
     },
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "env UV_CACHE_DIR=.cache/uv uv run --no-sync --project apps/api python -m compileall -q apps/api/app"
+        "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=apps/api:services/ai-planner uv run --no-sync --project apps/api python -m compileall -q apps/api/app services/ai-planner/ai_planner"
       }
     },
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "env UV_CACHE_DIR=.cache/uv uv run --no-sync --project apps/api ruff check apps/api/app apps/api/tests"
+        "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=apps/api:services/ai-planner uv run --no-sync --project apps/api ruff check apps/api/app apps/api/tests services/ai-planner/ai_planner services/ai-planner/tests"
       }
     },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "env UV_CACHE_DIR=.cache/uv uv run --no-sync --project apps/api mypy apps/api/app"
+        "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=apps/api:services/ai-planner uv run --no-sync --project apps/api mypy apps/api/app services/ai-planner/ai_planner"
       }
     },
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "env UV_CACHE_DIR=.cache/uv uv run --no-sync --project apps/api pytest apps/api/tests"
+        "command": "env UV_CACHE_DIR=.cache/uv PYTHONPATH=apps/api:services/ai-planner uv run --no-sync --project apps/api pytest apps/api/tests services/ai-planner/tests"
       }
     },
     "docker-build": {

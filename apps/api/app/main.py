@@ -5,6 +5,17 @@ from datetime import UTC, datetime
 from typing import Annotated, Any, Literal, cast
 from uuid import UUID
 
+from ai_planner import (
+    AiPlannerService,
+    ElasticsearchTravelRepository,
+    MockTravelRepository,
+    PlannerRequest,
+    PlannerResponse,
+    ResilientTravelRepository,
+    SearchFilters,
+    SearchResult,
+    TravelSearchRepository,
+)
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -68,6 +79,12 @@ def sanitise_event(event: ProductEvent) -> ProductEvent:
         "plan_generated": {"generationMode", "itemCount"},
         "plan_saved": {"saveMode"},
         "provider_handoff_opened": {"contentType", "providerDomain"},
+        "search_performed": {"resultCount", "searchMode"},
+        "destination_viewed": {"destinationId"},
+        "ai_planner_requested": {"requestLengthBand"},
+        "itinerary_generated": {"generationMode", "searchBackend", "dayCount"},
+        "itinerary_saved": {"saveMode"},
+        "destination_favourited": {"destinationId", "favourited"},
     }
     allowed_values: dict[str, set[str]] = {
         "entryPage": {"planner"},
@@ -78,13 +95,22 @@ def sanitise_event(event: ProductEvent) -> ProductEvent:
         "saveMode": {"connected", "demo-local"},
         "contentType": {"stay", "experience"},
         "providerDomain": {"example.com", "visitjamaica.com", "www.visitjamaica.com"},
+        "searchMode": {"catalog", "travel"},
+        "requestLengthBand": {"short", "medium", "long"},
+        "searchBackend": {"mock", "elasticsearch"},
     }
 
     def valid(key: str, value: str | int | bool) -> bool:
         if key == "interestCount":
             return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 3
-        if key == "itemCount":
-            return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 9
+        if key in {"itemCount", "resultCount"}:
+            return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 100
+        if key == "dayCount":
+            return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 14
+        if key == "destinationId":
+            return isinstance(value, str) and value in {"montego-bay", "negril", "ocho-rios"}
+        if key == "favourited":
+            return isinstance(value, bool)
         return str(value) in allowed_values.get(key, set())
 
     allowed = allowed_properties[event.eventName]
@@ -132,6 +158,19 @@ def create_app(
             if active_settings.ai_enabled and active_settings.ai_gateway_api_key
             else None
         )
+        mock_travel = MockTravelRepository(active_settings.travel_catalog_path)
+        travel_search: TravelSearchRepository
+        if active_settings.elasticsearch_url:
+            elastic_travel = ElasticsearchTravelRepository(
+                active_settings.elasticsearch_url,
+                active_settings.elasticsearch_travel_index,
+                active_settings.elasticsearch_api_key,
+                active_settings.elasticsearch_username,
+                active_settings.elasticsearch_password,
+            )
+            travel_search = ResilientTravelRepository(elastic_travel, mock_travel)
+        else:
+            travel_search = mock_travel
         await trips.ensure_indexes()
         if active_settings.elasticsearch_auto_index:
             await search.index_catalog(catalog)
@@ -139,12 +178,17 @@ def create_app(
         application.state.trips = trips
         application.state.search = search
         application.state.ai = gateway
+        application.state.ai_planner = AiPlannerService(
+            travel_search, gateway if active_settings.ai_enabled else None, active_settings.ai_timeout_ms / 1000
+        )
+        application.state.travel_search = travel_search
         application.state.ai_sessions = HourlyLimiter()
         application.state.ai_daily = DailyLimiter()
         application.state.event_sessions = HourlyLimiter()
         yield
         await trips.close()
         await search.close()
+        await travel_search.close()
         if gateway:
             await gateway.close()
 
@@ -165,7 +209,7 @@ def create_app(
 
     @application.middleware("http")
     async def request_size_limit(request: Request, call_next: Any) -> Response:
-        limits = {"/api/plan": 12_000, "/api/events": 3_000}
+        limits = {"/api/plan": 12_000, "/api/ai-planner": 4_000, "/api/events": 3_000}
         limit = limits.get(request.url.path, 100_000)
         if request.method in {"POST", "PUT"}:
             declared = int(request.headers.get("content-length", "0") or "0")
@@ -233,6 +277,37 @@ def create_app(
                     continue
         generation_mode: Literal["ai", "fallback"] = "ai" if narrative else "fallback"
         return create_plan(brief, narrative or build_fallback_narrative(catalog, brief), generation_mode)
+
+    @application.post("/api/ai-planner", response_model=PlannerResponse)
+    async def conversational_plan(
+        planner_request: PlannerRequest, request: Request, owner_id: str = Depends(session_owner)
+    ) -> PlannerResponse:
+        if not request.app.state.ai_sessions.allow(owner_id, active_settings.ai_max_session_calls_per_hour):
+            raise HTTPException(status_code=429, detail="AI planner request limit reached")
+        try:
+            return await request.app.state.ai_planner.plan(planner_request)
+        except ValueError as error:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+
+    @application.get("/api/travel-search", response_model=SearchResult)
+    async def travel_search(
+        request: Request,
+        q: Annotated[str, Query(max_length=100)] = "",
+        destination_id: Annotated[str | None, Query(pattern=r"^(montego-bay|negril|ocho-rios)$")] = None,
+        content_type: Annotated[
+            str | None, Query(pattern=r"^(destination|attraction|hotel|restaurant|activity|event)$")
+        ] = None,
+        tag: Annotated[list[str] | None, Query(max_length=8)] = None,
+        price_level: Annotated[str | None, Query(pattern=r"^(free|value|mid-range|premium)$")] = None,
+        limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    ) -> SearchResult:
+        filters = SearchFilters(
+            destination_id=destination_id,
+            categories=[content_type] if content_type else [],
+            tags=tag or [],
+            price_level=cast(Any, price_level),
+        )
+        return await request.app.state.ai_planner.search(q, filters, limit)
 
     @application.post("/api/events", status_code=status.HTTP_202_ACCEPTED)
     async def record_event(event: ProductEvent, request: Request) -> dict[str, bool]:

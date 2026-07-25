@@ -10,6 +10,7 @@ primary_region = "lhr"
   PORT = "8080"
   MONGODB_DATABASE = "visit_jamaica"
   ELASTICSEARCH_INDEX = "visit-jamaica-content"
+  ELASTICSEARCH_TRAVEL_INDEX = "visit-jamaica-travel"
 
 [http_service]
   internal_port = 8080

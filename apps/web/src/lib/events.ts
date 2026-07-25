@@ -11,6 +11,12 @@ const allowedProperties: Record<EventName, readonly string[]> = {
   plan_generated: ['generationMode', 'itemCount'],
   plan_saved: ['saveMode'],
   provider_handoff_opened: ['contentType', 'providerDomain'],
+  search_performed: ['resultCount', 'searchMode'],
+  destination_viewed: ['destinationId'],
+  ai_planner_requested: ['requestLengthBand'],
+  itinerary_generated: ['generationMode', 'searchBackend', 'dayCount'],
+  itinerary_saved: ['saveMode'],
+  destination_favourited: ['destinationId', 'favourited'],
 }
 
 export function tripLengthBand(nights: number) {

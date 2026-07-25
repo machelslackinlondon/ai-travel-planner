@@ -25,6 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               </Link>
               <nav aria-label="Primary navigation">
                 <Link href="/help">How it works</Link>
+                <Link href="/ai-planner">AI planner</Link>
                 <Link href="/saved">My trip</Link>
                 <Link className="button button-gold header-action" href="/plan">Plan my trip</Link>
               </nav>

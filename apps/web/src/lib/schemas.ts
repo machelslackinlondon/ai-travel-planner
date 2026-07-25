@@ -86,12 +86,54 @@ export const tripPlanSchema = aiNarrativeSchema.extend({
 
 export type TripPlan = z.infer<typeof tripPlanSchema>
 
+export const aiPlannerActivitySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: z.enum(['destination', 'attraction', 'hotel', 'restaurant', 'activity', 'event']),
+  description: z.string().min(1),
+  rating: z.number().min(0).max(5),
+  priceLevel: z.enum(['free', 'value', 'mid-range', 'premium']),
+})
+
+export const aiPlannerResponseSchema = z.object({
+  id: z.string().uuid(),
+  tripName: z.string().min(1),
+  duration: z.string().min(1),
+  summary: z.string().min(1),
+  estimatedBudget: z.string().min(1),
+  interpretedRequest: z.object({
+    destination: z.string().nullable(),
+    days: z.number().int().min(1).max(14),
+    interests: z.array(z.string()),
+    priceLevel: z.string().nullable(),
+  }),
+  days: z.array(z.object({
+    day: z.number().int().positive(),
+    title: z.string().min(1),
+    activities: z.array(aiPlannerActivitySchema),
+  })).min(1).max(14),
+  recommendations: z.array(aiPlannerActivitySchema),
+  sources: z.array(z.string()),
+  generationMode: z.enum(['ai', 'fallback']),
+  searchBackend: z.enum(['mock', 'elasticsearch']),
+  generatedAt: z.string(),
+  warnings: z.array(z.string()),
+})
+
+export type AiPlannerResponse = z.infer<typeof aiPlannerResponseSchema>
+
 export const allowedEventNames = [
   'planner_started',
   'brief_completed',
   'plan_generated',
   'plan_saved',
   'provider_handoff_opened',
+  'search_performed',
+  'destination_viewed',
+  'ai_planner_requested',
+  'itinerary_generated',
+  'itinerary_saved',
+  'destination_favourited',
 ] as const
 
 export const productEventSchema = z.object({
