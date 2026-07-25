@@ -21,7 +21,7 @@
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: var(--vj-white); }
 body, button, input, select, textarea { font: inherit; }
-img { display: block; max-width: 100%; }
+img { display: block; max-width: 100%; height: auto; }
 a { color: var(--vj-green-900); text-underline-offset: .2em; }
 button, a { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid var(--vj-gold-500); outline-offset: 3px; }

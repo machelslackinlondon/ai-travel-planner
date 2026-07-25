@@ -1,5 +1,8 @@
+'use client'
+
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ContentCard } from '../../components/ContentCard'
 import { ProviderDialog } from '../../components/ProviderDialog'
 import { areaLabel } from '../../lib/content'
@@ -10,14 +13,13 @@ import type { ContentItem, TripPlan } from '../../lib/schemas'
 import { clearDraft, deleteDemoTrip, getDemoSavedTrips, getDraft, saveDemoTrip, saveDraft } from '../../lib/storage'
 import { deleteConnectedTrip, getCurrentUser, isSupabaseConfigured, saveConnectedTrip, supabase } from '../../lib/supabase'
 
-export function TripPage() {
-  const { id } = useParams()
+export function TripPage({ id }: { id: string }) {
   const [plan, setPlan] = useState<TripPlan | null>(() => getDraft(id) ?? getDemoSavedTrips().find((trip) => trip.id === id) ?? null)
   const [handoffItem, setHandoffItem] = useState<ContentItem | null>(null)
   const [showSave, setShowSave] = useState(false)
   const [pinned, setPinned] = useState<string[]>([])
   const [deleteError, setDeleteError] = useState('')
-  const navigate = useNavigate()
+  const router = useRouter()
 
   useEffect(() => { if (plan) saveDraft(plan) }, [plan])
   const recommendedItems = useMemo(() => plan?.recommendations.map((recommendation) => ({ recommendation, item: contentById.get(recommendation.contentId) })).filter((entry): entry is { recommendation: TripPlan['recommendations'][number]; item: ContentItem } => Boolean(entry.item)) ?? [], [plan])
@@ -34,7 +36,7 @@ export function TripPage() {
     <div className="narrow-page">
       <div className="eyebrow">Trip unavailable</div><h1>We could not find this plan</h1>
       <p>An anonymous draft lasts only for this browser session. Build another plan or open a saved copy.</p>
-      <div className="button-row"><Link className="button button-primary" to="/plan">Build a plan</Link><Link className="button button-secondary" to="/saved">View saved trips</Link></div>
+      <div className="button-row"><Link className="button button-primary" href="/plan">Build a plan</Link><Link className="button button-secondary" href="/saved">View saved trips</Link></div>
     </div>
   )
 
@@ -77,7 +79,7 @@ export function TripPage() {
       if (isSupabaseConfigured && user) await deleteConnectedTrip(plan.id)
       deleteDemoTrip(plan.id)
       clearDraft()
-      navigate('/saved')
+      router.push('/saved')
     } catch {
       setDeleteError('We could not delete this trip just now. Please try again.')
     }
@@ -117,7 +119,7 @@ export function TripPage() {
                 <button className="text-button" type="button" disabled={index === recommendedItems.length - 1} aria-label={`Move ${item.title} later`} onClick={() => moveItem(index, 1)}>↓</button>
               </>} />
             ))}
-          </div> : <div className="notice"><h3>Let us widen the options</h3><p>There are no remaining suggestions. Adjust your choices to build another shortlist.</p><Link to="/plan">Adjust my choices</Link></div>}
+          </div> : <div className="notice"><h3>Let us widen the options</h3><p>There are no remaining suggestions. Adjust your choices to build another shortlist.</p><Link href="/plan">Adjust my choices</Link></div>}
         </div>
       </section>
 
@@ -132,10 +134,10 @@ export function TripPage() {
           <section className="trust-panel">
             <div className="eyebrow">How suggestions are made</div><h2>Approved records stay in control</h2>
             <p>The planner filters the catalogue first. AI can only organise those IDs and write short reasons. Prices, source links and provider details always come from the record.</p>
-            <Link to="/help">Read the planner help</Link>
+            <Link href="/help">Read the planner help</Link>
           </section>
         </div>
-        <div className="button-row"><button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button><Link className="button button-secondary" to="/plan">Keep editing my choices</Link><button className="button button-danger" type="button" onClick={() => void deleteTrip()}>Delete trip</button></div>
+        <div className="button-row"><button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button><Link className="button button-secondary" href="/plan">Keep editing my choices</Link><button className="button button-danger" type="button" onClick={() => void deleteTrip()}>Delete trip</button></div>
         {deleteError && <p className="field-error" role="alert">{deleteError}</p>}
       </div>
 
@@ -149,7 +151,7 @@ function SaveDialog({ plan, onClose }: { plan: TripPlan; onClose: () => void }) 
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'ready' | 'sending' | 'sent' | 'saved'>('ready')
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const router = useRouter()
 
   async function save() {
     setError('')
@@ -185,7 +187,7 @@ function SaveDialog({ plan, onClose }: { plan: TripPlan; onClose: () => void }) 
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose() }}>
       <section className="dialog" role="dialog" aria-modal="true" aria-labelledby="save-title">
         {status === 'sent' ? <><h2 id="save-title">Check your email</h2><p>Open the link on this device to save your plan. The link expires, so use the newest email if you requested more than one.</p><div className="button-row"><button className="button button-secondary" type="button" onClick={() => { setEmail(''); setStatus('ready') }}>Use a different email</button><button className="text-button" type="button" onClick={onClose}>Continue without saving</button></div></>
-          : status === 'saved' ? <><h2 id="save-title">Your trip is saved</h2><p>{isSupabaseConfigured ? 'This validated plan is associated with your signed-in account.' : 'Demo mode stored this copy only in this browser. Clearing browser data will remove it.'}</p><div className="button-row"><button className="button button-primary" type="button" onClick={() => navigate('/saved')}>View saved trips</button><button className="button button-secondary" type="button" onClick={onClose}>Keep editing</button></div></>
+          : status === 'saved' ? <><h2 id="save-title">Your trip is saved</h2><p>{isSupabaseConfigured ? 'This validated plan is associated with your signed-in account.' : 'Demo mode stored this copy only in this browser. Clearing browser data will remove it.'}</p><div className="button-row"><button className="button button-primary" type="button" onClick={() => router.push('/saved')}>View saved trips</button><button className="button button-secondary" type="button" onClick={onClose}>Keep editing</button></div></>
             : <><div className="eyebrow">Save after seeing value</div><h2 id="save-title">Save your plan</h2>{isSupabaseConfigured ? <><p>Enter your email and we will send a secure, one-time sign-in link. No password is needed.</p><div className="form-group"><label htmlFor="save-email">Email address</label><input id="save-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></div></> : <div className="notice"><strong>Local demo mode</strong><p>Email sign-in is not connected. Save a clearly labelled copy to this browser, or continue without saving.</p></div>}{error && <p className="field-error" role="alert">{error}</p>}<div className="button-row"><button className="button button-primary" type="button" disabled={status === 'sending'} onClick={() => void save()}>{status === 'sending' ? 'Saving…' : isSupabaseConfigured ? 'Email my secure link' : 'Save demo copy'}</button><button className="button button-secondary" type="button" onClick={onClose}>Continue without saving</button></div></>}
       </section>
     </div>

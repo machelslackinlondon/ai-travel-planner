@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { generatePlan } from '../../lib/api'
 import { trackEvent, tripLengthBand } from '../../lib/events'
 import { tripBriefSchema, type TripBrief } from '../../lib/schemas'
@@ -26,7 +28,7 @@ export function PlanPage() {
   const [errors, setErrors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [slow, setSlow] = useState(false)
-  const navigate = useNavigate()
+  const router = useRouter()
 
   useEffect(() => { void trackEvent('planner_started', { entryPage: 'planner' }) }, [])
   useEffect(() => {
@@ -95,7 +97,7 @@ export function PlanPage() {
     const plan = await generatePlan(parsed.data)
     saveDraft(plan)
     void trackEvent('plan_generated', { generationMode: plan.generationMode, itemCount: plan.recommendations.length })
-    navigate(`/trip/${plan.id}`)
+    router.push(`/trip/${plan.id}`)
   }
 
   if (loading) return (

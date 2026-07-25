@@ -48,8 +48,8 @@ If a visitor can turn a short description of their Jamaica trip into a trustwort
 
 Use the latest stable, mutually compatible versions and commit a lockfile:
 
-- React, TypeScript and Vite.
-- The official Cloudflare Vite plugin and a Cloudflare Worker with static assets.
+- Next.js App Router, React and TypeScript.
+- The OpenNext Cloudflare adapter and a Cloudflare Worker with static assets.
 - Cloudflare Workers AI through a binding named `AI`.
 - Supabase JavaScript client for passwordless authentication and saved trips.
 - CSS variables plus small, component-level styles. Tailwind may be used only if it materially reduces code; do not add a large component framework.
@@ -61,13 +61,14 @@ Keep the repository straightforward. Prefer clear feature folders over architect
 
 ### Suggested structure
 
-Adapt the official Cloudflare React starter where needed, but keep the intent below:
+Use the standard Next.js App Router structure where needed, but keep the intent below:
 
 ```text
 content/seed/             approved demo content in JSON
 docs/                     product, onboarding and operating documents
 public/images/            local placeholders or approved images
 src/components/           shared interface components
+src/app/                  App Router pages, layouts and API route handlers
 src/features/onboarding/  trip brief steps
 src/features/planner/     recommendations and trip editing
 src/features/auth/        magic-link save flow

@@ -36,7 +36,7 @@ The application must make stale information visible through the checked date and
 1. Review dependency update notices and security advisories.
 2. Apply small, compatible updates in a branch.
 3. Run lint, type checking, tests, the production build and the happy-path end-to-end test.
-4. Preview the change and check the 360-pixel layout and keyboard journey.
+4. Run `npm run preview`, then check the 360-pixel layout and keyboard journey.
 5. Merge and deploy manually after review.
 
 Avoid automatic production deployment and large upgrade batches during the pilot.

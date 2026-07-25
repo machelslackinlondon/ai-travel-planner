@@ -1,6 +1,9 @@
 node_modules
 .pnpm-store
 dist
+.next
+.open-next
+*.tsbuildinfo
 .wrangler
 playwright-report
 test-results

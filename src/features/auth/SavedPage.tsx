@@ -1,5 +1,7 @@
+'use client'
+
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { areaLabel } from '../../lib/content'
 import { deleteDemoTrip, getDemoSavedTrips } from '../../lib/storage'
 import { deleteConnectedTrip, getCurrentUser, isSupabaseConfigured, supabase } from '../../lib/supabase'
@@ -47,8 +49,8 @@ export function SavedPage() {
       <div className="eyebrow">My trip</div><h1>Saved trips</h1>
       {isSupabaseConfigured && !signedIn && !loading && <div className="notice"><strong>You are not signed in.</strong><p>Build a plan and choose Save this trip to request a secure email link. We ask only after the plan is useful.</p></div>}
       {loading ? <p role="status">Loading saved trips…</p> : error ? <p className="field-error" role="alert">{error}</p> : trips.length ? <div className="saved-list">
-        {trips.map((trip) => <article className="saved-row" key={trip.id}><div><div className="eyebrow">{trip.generationMode === 'ai' ? 'AI-organised' : 'Preference-matched'}</div><h2>{areaLabel(trip.selectedArea)} · {trip.brief.nights} nights</h2><p>{trip.summary}</p></div><div className="button-row"><Link className="button button-primary" to={`/trip/${trip.id}`}>Open trip</Link><button className="button button-danger" type="button" onClick={() => void remove(trip.id)}>Delete trip</button></div></article>)}
-      </div> : <div><h2>Your next Jamaica idea starts here</h2><p>Build a plan, then save it here when it feels right.</p><Link className="button button-primary" to="/plan">Plan a trip</Link></div>}
+        {trips.map((trip) => <article className="saved-row" key={trip.id}><div><div className="eyebrow">{trip.generationMode === 'ai' ? 'AI-organised' : 'Preference-matched'}</div><h2>{areaLabel(trip.selectedArea)} · {trip.brief.nights} nights</h2><p>{trip.summary}</p></div><div className="button-row"><Link className="button button-primary" href={`/trip/${trip.id}`}>Open trip</Link><button className="button button-danger" type="button" onClick={() => void remove(trip.id)}>Delete trip</button></div></article>)}
+      </div> : <div><h2>Your next Jamaica idea starts here</h2><p>Build a plan, then save it here when it feels right.</p><Link className="button button-primary" href="/plan">Plan a trip</Link></div>}
     </div>
   )
 }

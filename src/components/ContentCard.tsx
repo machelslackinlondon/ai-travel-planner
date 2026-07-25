@@ -1,3 +1,6 @@
+'use client'
+
+import Image from 'next/image'
 import { areaLabel, priceStatusLabel, typeLabel } from '../lib/content'
 import type { ContentItem } from '../lib/schemas'
 
@@ -11,7 +14,7 @@ type Props = {
 export function ContentCard({ item, reason, actions, onSource }: Props) {
   return (
     <article className="content-card">
-      <img src={item.imagePath} alt={item.imageAlt} />
+      <Image src={item.imagePath} alt={item.imageAlt} width={1200} height={675} sizes="(max-width: 760px) 100vw, 33vw" />
       <div className="content-card-body">
         <div className="eyebrow">{areaLabel(item.resortArea)} · {typeLabel(item.type)}</div>
         <h3>{item.title}</h3>

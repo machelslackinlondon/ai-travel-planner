@@ -1,3 +1,5 @@
+'use client'
+
 import { priceStatusLabel, typeLabel } from '../lib/content'
 import { getProviderLink, openProvider } from '../lib/provider'
 import type { ContentItem } from '../lib/schemas'

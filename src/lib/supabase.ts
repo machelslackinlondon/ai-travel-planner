@@ -1,13 +1,13 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
 import type { TripPlan } from './schemas'
 
-const url = import.meta.env.VITE_SUPABASE_URL?.trim()
-const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
 
-export const isSupabaseConfigured = Boolean(url && publishableKey)
-export const supabase: SupabaseClient | null = isSupabaseConfigured ? createClient(url, publishableKey, {
+export const supabase: SupabaseClient | null = url && publishableKey ? createClient(url, publishableKey, {
   auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true },
 }) : null
+export const isSupabaseConfigured = Boolean(supabase)
 
 export async function getCurrentUser(): Promise<User | null> {
   if (!supabase) return null

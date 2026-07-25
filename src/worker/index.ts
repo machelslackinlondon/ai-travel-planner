@@ -2,7 +2,7 @@ import { contentItems } from '../lib/content'
 import { buildFallbackNarrative, createPlan, scoreContent, validateNarrative } from '../lib/recommendations'
 import { productEventSchema, tripBriefSchema, type AiNarrative, type ProductEvent, type TripBrief } from '../lib/schemas'
 
-type Env = {
+export type Env = {
   AI?: { run(model: string, input: Record<string, unknown>): Promise<unknown> }
   DEMO_MODE?: string
   AI_ENABLED?: string
@@ -16,11 +16,23 @@ type Env = {
 }
 
 type RateEntry = { windowStart: number; count: number }
-const aiRates = new Map<string, RateEntry>()
-const eventRates = new Map<string, RateEntry>()
-const narrativeCache = new Map<string, AiNarrative>()
-const developmentEvents: Array<ProductEvent & { receivedAt: string }> = []
-let dailyAi = { day: '', count: 0 }
+type WorkerState = {
+  aiRates: Map<string, RateEntry>
+  eventRates: Map<string, RateEntry>
+  narrativeCache: Map<string, AiNarrative>
+  developmentEvents: Array<ProductEvent & { receivedAt: string }>
+  dailyAi: { day: string; count: number }
+}
+
+const runtimeGlobal = globalThis as typeof globalThis & { __visitJamaicaWorkerState?: WorkerState }
+const workerState: WorkerState = runtimeGlobal.__visitJamaicaWorkerState ??= {
+  aiRates: new Map(),
+  eventRates: new Map(),
+  narrativeCache: new Map(),
+  developmentEvents: [],
+  dailyAi: { day: '', count: 0 },
+}
+const { aiRates, eventRates, narrativeCache, developmentEvents } = workerState
 
 const securityHeaders = {
   'content-security-policy': "default-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
@@ -84,8 +96,8 @@ async function runAi(env: Env, brief: TripBrief, sessionId: string): Promise<AiN
   const sessionLimit = Number(env.AI_MAX_SESSION_CALLS_PER_HOUR ?? 3)
   if (!withinLimit(aiRates, sessionId, sessionLimit)) return null
   const today = new Date().toISOString().slice(0, 10)
-  if (dailyAi.day !== today) dailyAi = { day: today, count: 0 }
-  if (dailyAi.count >= Number(env.AI_MAX_DAILY_CALLS ?? 100)) return null
+  if (workerState.dailyAi.day !== today) workerState.dailyAi = { day: today, count: 0 }
+  if (workerState.dailyAi.count >= Number(env.AI_MAX_DAILY_CALLS ?? 100)) return null
 
   const shortlist = scoreContent(contentItems, brief).slice(0, 9)
   const allowedIds = new Set(shortlist.map((item) => item.id))
@@ -101,7 +113,7 @@ async function runAi(env: Env, brief: TripBrief, sessionId: string): Promise<AiN
   const timeoutMs = Number(env.AI_TIMEOUT_MS ?? 4500)
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    dailyAi.count += 1
+    workerState.dailyAi.count += 1
     try {
       const result = await Promise.race([
         env.AI.run(env.AI_MODEL ?? '@cf/meta/llama-3.1-8b-instruct', {
@@ -188,7 +200,7 @@ async function eventRoute(request: Request, env: Env) {
   return json({ accepted: true }, 202)
 }
 
-export default {
+const worker = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     if (request.method === 'POST' && url.pathname === '/api/plan') return planRoute(request, env)
@@ -197,3 +209,5 @@ export default {
     return json({ error: 'Not found' }, 404)
   },
 }
+
+export default worker

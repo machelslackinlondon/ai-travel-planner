@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Image from 'next/image'
+import Link from 'next/link'
 import { ContentCard } from '../../components/ContentCard'
+import { DevEventViewer } from '../../components/DevEventViewer'
 import { contentItems } from '../../lib/content'
 
 export function HomePage() {
@@ -13,13 +14,13 @@ export function HomePage() {
           <h1>Build your Jamaica trip</h1>
           <p className="lede">Tell us what feels right for your visit. We will turn your choices into a simple plan using approved Jamaica travel content.</p>
           <div className="button-row">
-            <Link className="button button-primary" to="/plan">Plan my trip</Link>
-            <Link className="button button-secondary" to="/help">See how it works</Link>
+            <Link className="button button-primary" href="/plan">Plan my trip</Link>
+            <Link className="button button-secondary" href="/help">See how it works</Link>
           </div>
           <p className="trust-note">No account is needed to start. Transport to Jamaica is not included.</p>
         </div>
         <div className="hero-media">
-          <img src="/images/sample-montego-bay.svg" alt="Labelled sample destination illustration with green hills and water" />
+          <Image src="/images/sample-montego-bay.svg" alt="Labelled sample destination illustration with green hills and water" width={1200} height={675} priority />
           <span className="image-label">Sample destination image</span>
         </div>
       </section>
@@ -45,16 +46,6 @@ export function HomePage() {
       </section>
     </>
   )
-}
-
-function DevEventViewer() {
-  const [events, setEvents] = useState<unknown[]>([])
-  useEffect(() => {
-    if (!import.meta.env.DEV) return
-    fetch('/api/dev/events').then(async (response) => response.ok ? await response.json() as unknown[] : []).then(setEvents).catch(() => setEvents([]))
-  }, [])
-  if (!import.meta.env.DEV) return null
-  return <section className="dev-events" aria-label="Development event viewer"><strong>Development-only event viewer</strong><pre>{JSON.stringify(events, null, 2)}</pre></section>
 }
 
 export function HelpPage() {
@@ -117,7 +108,7 @@ export function NotFoundPage() {
       <div className="eyebrow">Page not found</div>
       <h1>Let us get you back to planning</h1>
       <p>The page you requested is not part of this small pilot.</p>
-      <Link className="button button-primary" to="/">Return home</Link>
+      <Link className="button button-primary" href="/">Return home</Link>
     </div>
   )
 }

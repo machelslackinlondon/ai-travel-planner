@@ -6,7 +6,7 @@ Use two hosted providers for the pilot. Everything else should be source code or
 
 | Need | Service | Why it fits the MVP |
 |---|---|---|
-| Web app, API and preview deployments | Cloudflare Workers with static assets | One small deployment for the React app and server routes; no separate server to maintain. |
+| Web app, API and preview deployments | Next.js on Cloudflare Workers | One small OpenNext deployment for the React app and server routes; no separate server to maintain. |
 | AI-assisted wording and itinerary organisation | Cloudflare Workers AI | Uses a Worker binding, needs no separate model provider key and has a free daily allocation. |
 | Passwordless sign-in and saved trips | Supabase | Managed authentication and a small Postgres database with Row Level Security. |
 | Approved destination content | Versioned JSON in the repository | No new CMS, subscription, runtime scrape or fragile integration. |
@@ -23,7 +23,7 @@ The figures below were checked on 24 July 2026 and can change. Confirm them on t
 
 - Workers Free currently permits 100,000 requests per day and 10 milliseconds of CPU time per invocation. Static asset requests are free and unlimited. See [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) and [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/).
 - Workers AI currently includes 10,000 neurons per day at no charge. On the Free plan, requests fail after the daily allocation is used, so the deterministic planner is a required fallback. See [Workers AI pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/).
-- Cloudflare's official React starter and Vite plugin should be used so the web app and Worker share one build and deployment. See [Cloudflare Vite plugin documentation](https://developers.cloudflare.com/workers/vite-plugin/).
+- Use Next.js App Router and Cloudflare's OpenNext adapter so the web app and route handlers share one Worker deployment. See [Cloudflare's Next.js guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/).
 
 ### Supabase
 
