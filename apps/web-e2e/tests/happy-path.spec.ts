@@ -25,6 +25,7 @@ test('a visitor builds, edits and saves a useful account-free plan', async ({ pa
   await expect(page.getByText(/This editable outline uses sample content/)).toHaveCount(0)
   await expect(page.locator('.plan-header').getByRole('button', { name: 'Save this trip' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Save this trip' })).toHaveCount(1)
+  await expect(page.locator('.trip-summary-page')).toHaveCSS('padding-bottom', '40px')
   await expect(page.getByText('Estimated sample cost').first()).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 

@@ -140,7 +140,7 @@ export function TripPage({ id, customisationApplied = false }: { id: string; cus
         </div>
       </section>
 
-      <div className="page">
+      <div className="page trip-summary-page">
         <div className="card-grid">
           <section className="cost-panel">
             <div className="eyebrow">Cost assumptions</div><h2>Planning subtotals</h2>
