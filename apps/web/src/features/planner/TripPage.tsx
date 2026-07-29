@@ -110,11 +110,8 @@ export function TripPage({ id, customisationApplied = false }: { id: string; cus
         <div className="page">
           <div className="plan-header">
             <div><div className="eyebrow">Your first Jamaica plan</div><h1>{areaLabel(plan.selectedArea)} in {plan.brief.nights} nights</h1><p className="lede">{plan.summary}</p></div>
-            <button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button>
           </div>
-          {plan.fallbackMessage && <div className="notice" role="status"><strong>Your plan is ready.</strong> {plan.fallbackMessage}</div>}
           {customisationApplied && <div className="notice" role="status"><strong>Changes applied successfully.</strong> Your customised itinerary is now the current trip.</div>}
-          <p className="trust-note">This editable outline uses sample content. Nothing has been reserved or charged.</p>
         </div>
       </section>
 
