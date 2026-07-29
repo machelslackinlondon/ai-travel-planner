@@ -52,7 +52,7 @@ test('a visitor customises an existing trip and explicitly applies the validated
   await page.getByRole('button', { name: 'Build my plan' }).click()
 
   await expect(page).toHaveURL(/\/trip\/[0-9a-f-]+/)
-  await expect(page.getByRole('button', { name: 'Keep this trip' })).toBeVisible()
+  await expect(page.getByText('Choose your next step')).toHaveCount(0)
   await page.getByRole('link', { name: 'Customise this trip' }).click()
 
   await expect(page).toHaveURL(/\/ai-planner\?tripId=/)

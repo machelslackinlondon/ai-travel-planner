@@ -20,7 +20,6 @@ export function TripPage({ id, customisationApplied = false }: { id: string; cus
   const [pinned, setPinned] = useState<string[]>([])
   const [deleteError, setDeleteError] = useState('')
   const [loadingRemote, setLoadingRemote] = useState(plan === null)
-  const [showCustomisationChoice, setShowCustomisationChoice] = useState(true)
   const offered = useRef(false)
   const router = useRouter()
 
@@ -116,7 +115,6 @@ export function TripPage({ id, customisationApplied = false }: { id: string; cus
           {plan.fallbackMessage && <div className="notice" role="status"><strong>Your plan is ready.</strong> {plan.fallbackMessage}</div>}
           {customisationApplied && <div className="notice" role="status"><strong>Changes applied successfully.</strong> Your customised itinerary is now the current trip.</div>}
           <p className="trust-note">This editable outline uses sample content. Nothing has been reserved or charged.</p>
-          {showCustomisationChoice && <section className="customisation-choice" aria-labelledby="next-step-title"><div><div className="eyebrow">Choose your next step</div><h2 id="next-step-title">Keep this trip or tailor it with AI</h2><p>Your current plan will stay unchanged unless you review and apply a proposed customisation.</p></div><div className="button-row"><button className="button button-secondary" type="button" onClick={() => { setShowCustomisationChoice(false); document.getElementById('trip-outline')?.scrollIntoView() }}>Keep this trip</button><Link className="button button-primary" href={`/ai-planner?tripId=${encodeURIComponent(plan.id)}`}>Customise this trip</Link></div></section>}
         </div>
       </section>
 
@@ -159,7 +157,7 @@ export function TripPage({ id, customisationApplied = false }: { id: string; cus
             <Link href="/help">Read the planner help</Link>
           </section>
         </div>
-        <div className="button-row"><button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button><Link className="button button-secondary" href="/plan">Keep editing my choices</Link><button className="button button-danger" type="button" onClick={() => void deleteTrip()}>Delete trip</button></div>
+        <div className="button-row"><button className="button button-primary" type="button" onClick={() => setShowSave(true)}>Save this trip</button><Link className="button button-secondary" href="/plan">Keep editing my choices</Link><Link className="button button-secondary" href={`/ai-planner?tripId=${encodeURIComponent(plan.id)}`}>Customise this trip</Link><button className="button button-danger" type="button" onClick={() => void deleteTrip()}>Delete trip</button></div>
         {deleteError && <p className="field-error" role="alert">{deleteError}</p>}
       </div>
 
