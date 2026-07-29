@@ -2,7 +2,6 @@
 .codex
 apps/api
 docs
-libs/catalog/project.json
 output
 playwright-report
 test-results
